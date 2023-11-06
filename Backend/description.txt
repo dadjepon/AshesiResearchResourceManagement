@@ -1,0 +1,2 @@
+This directory is for everything backend and will include all backend files.
+The name of the project is ARRM.
