@@ -1,0 +1,2 @@
+Directory for everything frontend related.
+Tech stack for frontend: React
