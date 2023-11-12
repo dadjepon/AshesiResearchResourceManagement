@@ -69,7 +69,7 @@ class Role(models.TextChoices):
 
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    """"
+    """
     Custom user model that supports using email instead of username
 
     Attributes:
@@ -118,6 +118,11 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 class TokenBlacklist(models.Model):
     """
     allows blacklisting of access tokens whose referesh tokens have been revoked
+
+    Attributes:
+        - user: Foreign key to the user account whose token is being blacklisted
+        - token: The access token to be blacklisted
+        - created_at: The date and time the token was blacklisted
     """
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
