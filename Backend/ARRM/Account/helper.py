@@ -1,5 +1,8 @@
 import json
-from operator import index
+
+
+EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@ashesi\.edu\.gh$"
+PASSWORD_REGEX = r"^(?=(.*[A-Z]){2,})(?=(.*[a-z]){2,})(?=.*\d{2,})(?=.*[!@#$%^&()\-_<>.+]{2,}).{8,}$"
 
 
 def read_country_file(filename):
