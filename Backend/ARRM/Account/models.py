@@ -16,7 +16,7 @@ class CustomUserManager(BaseUserManager):
         other_fields.setdefault('is_active', True)
 
         email = self.normalize_email(email)
-        user = self.model(firstname=firstname, lastname=lastname, email=email, **other_fields)
+        user = self.model(firstname=firstname, lastname=lastname, email=email, password=password, **other_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -57,7 +57,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         - lastname: user's last name
         - email: user's email address
         - mobile_number: user's mobile number
-        - role: user's role 
+        - role: user's role (admin, RA, faculty)
         - nationality: user's nationality
         - account_status: user's account status (complete, incomplete, pending, disabled)
         - is_staff: user's staff status
