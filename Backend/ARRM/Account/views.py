@@ -9,9 +9,9 @@ from .helper import read_user_data, build_account_dict
 
 
 class RegisterUsersView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated, IsAdminUser]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         """
         allows admin to premake account for users by providing
         a csv file containing user details
@@ -35,7 +35,7 @@ class RegisterUsersView(APIView):
         # create user accounts
         for user in users_data:
             user_account_details = build_account_dict(user)
-            serializer = AccountRegistrationSerializer(**user_account_details)
+            serializer = AccountRegistrationSerializer(data=user_account_details) # type: ignore
             if serializer.is_valid():
                 serializer.save()
                 serializer.data["status"] = "success"
