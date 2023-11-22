@@ -1,15 +1,18 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.utils import timezone
 
 from .models import UserAccount, TokenBlacklist
-from .serializers import AccountRegistrationSerializer, UserAccountSerializer
+from .serializers import (AccountRegistrationSerializer, AccountLoginSerializer, 
+                          UserAccountSerializer)
 from .helper import read_user_data, build_account_dict
 
 
 class RegisterUsersView(APIView):
-    # permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def post(self, request):
         """
@@ -45,3 +48,36 @@ class RegisterUsersView(APIView):
                 user_creation_response.append(serializer.errors)
 
         return Response(user_creation_response, status=status.HTTP_200_OK)
+    
+
+class AccountLogin(TokenObtainPairView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = AccountLoginSerializer(data=request.data)
+        response = super().post(request)
+
+        if response.status_code == status.HTTP_200_OK:
+            response.set_cookie(
+                key="refresh_token",
+                value=response.data["refresh"], # type: ignore
+                httponly=True,
+                samesite="None",
+                secure=True
+            )
+            response.set_cookie(
+                key="access_token",
+                value=response.data["access"], # type: ignore
+                httponly=True,
+                samesite="None",
+                secure=True
+            )
+
+            # update user last login
+            user = UserAccount.objects.get(email=request.data["email"])
+            user.last_login = timezone.now()
+            user.save()
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return response

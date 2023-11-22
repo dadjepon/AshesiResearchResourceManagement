@@ -1,4 +1,7 @@
+from cProfile import label
+import email
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import UserAccount, Role, TokenBlacklist
 from .helper import EMAIL_REGEX, PASSWORD_REGEX
 import re
@@ -81,3 +84,73 @@ class UserAccountSerializer(serializers.ModelSerializer):
             "employee_id", "firstname", "lastname", "email",
             "mobile_number", "role", "nationality", "last_login"
         ]
+
+
+class AccountLoginSerializer(TokenObtainPairSerializer):
+    """
+    defines a custom token obtain pair serializer which allows
+    users to login with their email and password
+    """
+    
+    email = serializers.EmailField(
+        write_only=True, 
+        required=True,
+        validators=[EMAIL_REGEX]
+    )
+    password = serializers.CharField(
+        write_only=True, 
+        required=True,
+        trim_whitespace=False,
+        label="Password",
+        style={"input_type": "password"},
+        validators=[PASSWORD_REGEX]
+    )
+    token = serializers.SerializerMethodField("get_token")
+
+    class Meta:
+        model = UserAccount
+        fields = ["email", "password", "token"]
+        extra_kwargs = {
+            "access": {"read_only": True},
+            "refresh": {"read_only": True}
+        }
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # add user's firstname, lastname and role to token payload
+        token["firstname"] = user.firstname # type: ignore
+        token["lastname"] = user.lastname # type: ignore
+        token["role"] = user.role # type: ignore
+        return token
+    
+    def validate_email(self, value):
+        return re.match(EMAIL_REGEX, value)
+    
+    def validate_password(self, value):
+        return re.match(PASSWORD_REGEX, value)
+    
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        user = UserAccount.objects.filter(email=email).first()
+        if not user:
+            raise serializers.ValidationError("No user found with this email!")
+        
+        if not user.check_password(password): # type: ignore
+            raise serializers.ValidationError("Invalid email or password!")
+        
+        if not user.is_active:
+            raise serializers.ValidationError("Account is disabled!")
+        
+        user_data = UserAccountSerializer(user).data
+        token = self.get_token(user) # type: ignore
+        user_data["refresh_token"] = str(token)
+        user_data["access_token"] = str(token.access_token) # type: ignore
+        return user_data
+    
+    default_error_messages = {
+        "no_active_account": "No active account found with the given credentials"
+    }

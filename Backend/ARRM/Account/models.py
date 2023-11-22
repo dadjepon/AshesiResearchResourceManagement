@@ -73,6 +73,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.RA)
     nationality = models.CharField(max_length=150)
     account_status = models.CharField(max_length=20, default="incomplete")
+    # num_incorrect_logins = models.IntegerField(default=0)
     
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
