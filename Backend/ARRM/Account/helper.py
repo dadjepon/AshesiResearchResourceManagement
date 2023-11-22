@@ -63,13 +63,10 @@ def generate_password():
 
     all_chars = uppercase_chars + lowercase_chars + digit_chars + special_chars
 
-    # Ensure a minimum length of 8 characters
     # while len(all_chars) < 8:
     #     all_chars.append(random.choice(string.ascii_letters + string.digits + string.punctuation))
 
-    # Shuffle the characters for randomness
     random.shuffle(all_chars)
-
     password = ''.join(all_chars)
     print(password)
     return password
