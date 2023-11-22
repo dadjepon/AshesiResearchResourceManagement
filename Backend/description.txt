@@ -2,7 +2,7 @@ This directory is for everything backend and will include all backend files.
 The name of the project is ARRM.
 
 Assume file containing info to have the following columns in the shown order:
-Employee_id,Firstname,Lastname,Email,Mobile_number,Role,Nationality
+id,Firstname,Lastname,Email,Mobile_number,Role,Nationality
 
 Functionalities:
 1. Endpoint for administrator accounts to pre-make accounts for Research Assistants and
