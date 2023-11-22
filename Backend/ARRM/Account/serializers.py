@@ -8,17 +8,23 @@ import re
 
 
 class AccountRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[PASSWORD_REGEX])
-    confirm_password = serializers.CharField(write_only=True, required=True, validators=[PASSWORD_REGEX])
+    password = serializers.CharField(
+        write_only=True, 
+        required=True
+    )
+    confirm_password = serializers.CharField(
+        write_only=True, 
+        required=True
+    )
 
     class Meta:
         model = UserAccount
         fields = [
-            "employee_id", "firstname", "lastname", "email",
+            "id", "firstname", "lastname", "email", "password", "confirm_password",
             "mobile_number", "role", "nationality", "last_login"
         ]
 
-    def validate_employee_id(self, value):        
+    def validate_id(self, value):        
         if not value.isdigit():
             raise serializers.ValidationError("Employee ID must be a number")
         
@@ -37,7 +43,22 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
         return value
     
     def validate_email(self, value):
-        return re.match(EMAIL_REGEX, value)
+        if not re.match(EMAIL_REGEX, value):
+            raise serializers.ValidationError("Invalid email address")
+        
+        return value
+    
+    def validate_password(self, value):
+        if not re.match(PASSWORD_REGEX, value):
+            raise serializers.ValidationError("Invalid password")
+        
+        return value
+    
+    def validate_confirm_password(self, value):
+        if not re.match(PASSWORD_REGEX, value):
+            raise serializers.ValidationError("Invalid password")
+        
+        return value
     
     def validate_mobile_number(self, value):
         if not value.isdigit():
@@ -56,7 +77,6 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
     
     def save(self):
         user_account = UserAccount(
-            employee_id=self.validated_data["employee_id"], # type: ignore
             firstname=self.validated_data["firstname"], # type: ignore
             lastname=self.validated_data["lastname"], # type: ignore
             email=self.validated_data["email"], # type: ignore
@@ -81,7 +101,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         fields = [
-            "employee_id", "firstname", "lastname", "email",
+            "id", "firstname", "lastname", "email",
             "mobile_number", "role", "nationality", "last_login"
         ]
 
