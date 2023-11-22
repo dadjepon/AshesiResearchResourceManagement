@@ -29,12 +29,11 @@ def read_country_file(filename):
     return COUNTRY_CODES
 
 
-def read_user_data(filename):
+def read_user_data(user_data_file):
 
-    with open(filename, "r") as user_data_file:
-        user_data_file.readline()       # skip the headers
-        user_data = user_data_file.read().splitlines()
-        user_data_file.close()
+    user_data_file.readline()       # skip the headers
+    user_data = user_data_file.read().splitlines()
+    user_data_file.close()
     
     return user_data
 
@@ -43,7 +42,7 @@ def build_account_dict(user_info):
     
     user_info = user_info.split(",")
     user_account_details = dict()
-    user_account_details["employee_id"] = user_info[0].strip()
+    user_account_details["id"] = user_info[0].strip()
     user_account_details["firstname"] = user_info[1].strip()
     user_account_details["lastname"] = user_info[2].strip()
     user_account_details["email"] = user_info[3].strip()
