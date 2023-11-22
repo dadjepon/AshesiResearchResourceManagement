@@ -1,8 +1,10 @@
 import re
 
 
-EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@ashesi\.edu\.gh$"
-PASSWORD_REGEX = r"^(?=(.*[A-Z]){2,})(?=(.*[a-z]){2,})(?=.*\d{2,})(?=.*[!@#$%^&()\-_<>.+]{2,}).{8,}$"
+# EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@ashesi\.edu\.gh$"
+EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@([a-z\d-]+)\.([a-z]{2,10})(\.[a-z]{2,10})?$"
+PASSWORD_REGEX = r"^(?=(.*[A-Z]){2,})(?=(.*[a-z]){2,})(?=(.*\d){2,})(?=(.*[!#$%&()*+,-.:;<=>?@_~]){2,}).{8,}$"
+
 
 
 def read_country_file(filename):
@@ -42,6 +44,9 @@ def read_user_data(user_data_file):
     return user_data
 
 
+import random
+import string
+
 def generate_password():
     """
     generates a random password for a user
@@ -51,24 +56,22 @@ def generate_password():
         - 2 digits
         - 2 special characters
     """
-    import random
-    import string
+    uppercase_chars = random.choices(string.ascii_uppercase, k=2)
+    lowercase_chars = random.choices(string.ascii_lowercase, k=2)
+    digit_chars = random.choices(string.digits, k=2)
+    special_chars = random.choices('!#$%&()*+,-.:;<=>?@_~', k=2)
 
-    password = ""
-    password += random.choice(string.ascii_uppercase)
-    password += random.choice(string.ascii_lowercase)
-    password += random.choice(string.digits)
-    password += random.choice(string.punctuation)
+    all_chars = uppercase_chars + lowercase_chars + digit_chars + special_chars
 
-    for _ in range(4):
-        password += random.choice(string.ascii_uppercase)
-        password += random.choice(string.ascii_lowercase)
-        password += random.choice(string.digits)
-        password += random.choice(string.punctuation)
-    
-    password = list(password)
-    random.shuffle(password)
-    password = "".join(password)
+    # Ensure a minimum length of 8 characters
+    # while len(all_chars) < 8:
+    #     all_chars.append(random.choice(string.ascii_letters + string.digits + string.punctuation))
+
+    # Shuffle the characters for randomness
+    random.shuffle(all_chars)
+
+    password = ''.join(all_chars)
+    print(password)
     return password
 
 
@@ -77,12 +80,12 @@ def build_account_dict(user_info):
 
     user_info = user_info.decode("utf-8").split(",")
     user_account_details = dict()
-    user_account_details["firstname"] = user_info[1].strip()
-    user_account_details["lastname"] = user_info[2].strip()
-    user_account_details["email"] = user_info[3].strip()
-    user_account_details["mobile_number"] = user_info[4].strip()
-    user_account_details["role"] = user_info[5].strip()
-    user_account_details["nationality"] = user_info[6].strip()
+    user_account_details["firstname"] = user_info[0].strip()
+    user_account_details["lastname"] = user_info[1].strip()
+    user_account_details["email"] = user_info[2].strip()
+    user_account_details["mobile_number"] = user_info[3].strip()
+    user_account_details["role"] = user_info[4].strip()
+    user_account_details["nationality"] = user_info[5].strip()
     user_account_details["password"] = password
     user_account_details["confirm_password"] = password
 
