@@ -1,3 +1,4 @@
+from ast import arg
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,7 +21,7 @@ class RegisterUsersView(APIView):
         a csv file containing user details
         
         FILE COLUMNS:
-            employee_id, firstname, lastname, email, mobile_number, role, nationality
+            id, firstname, lastname, email, mobile_number, role, nationality
         """
 
         # get csv file from request
@@ -53,9 +54,9 @@ class RegisterUsersView(APIView):
 class AccountLogin(TokenObtainPairView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = AccountLoginSerializer(data=request.data)
-        response = super().post(request)
+        response = super().post(request, *args, **kwargs)
 
         if response.status_code == status.HTTP_200_OK:
             response.set_cookie(
@@ -74,7 +75,7 @@ class AccountLogin(TokenObtainPairView):
             )
 
             # update user last login
-            user = UserAccount.objects.get(email=request.data["email"])
+            user = UserAccount.objects.get(email=request.data["email"]) # type: ignore
             user.last_login = timezone.now()
             user.save()
         else:
