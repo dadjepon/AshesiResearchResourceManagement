@@ -37,7 +37,6 @@ def read_user_data(user_data_file):
 
     user_data_file.readline()       # skip the headers
     user_data = user_data_file.read().splitlines()
-    print(type(user_data[0]))
     user_data_file.close()
     
     return user_data
