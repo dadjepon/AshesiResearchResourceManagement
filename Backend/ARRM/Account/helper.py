@@ -1,3 +1,6 @@
+import re
+
+
 EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@ashesi\.edu\.gh$"
 PASSWORD_REGEX = r"^(?=(.*[A-Z]){2,})(?=(.*[a-z]){2,})(?=.*\d{2,})(?=.*[!@#$%^&()\-_<>.+]{2,}).{8,}$"
 
@@ -29,26 +32,60 @@ def read_country_file(filename):
     return COUNTRY_CODES
 
 
-def read_user_data(filename):
+def read_user_data(user_data_file):
+    # function expects an already opened file (InMemoryUploadedFile)
 
-    with open(filename, "r") as user_data_file:
-        user_data_file.readline()       # skip the headers
-        user_data = user_data_file.read().splitlines()
-        user_data_file.close()
+    user_data_file.readline()       # skip the headers
+    user_data = user_data_file.read().splitlines()
+    print(type(user_data[0]))
+    user_data_file.close()
     
     return user_data
 
 
-def build_account_dict(user_info):
+def generate_password():
+    """
+    generates a random password for a user
+    password generated is at least 8 characters long and must contain:
+        - 2 uppercase letters
+        - 2 lowercase letters
+        - 2 digits
+        - 2 special characters
+    """
+    import random
+    import string
 
-    user_info = user_info.split(",")
+    password = ""
+    password += random.choice(string.ascii_uppercase)
+    password += random.choice(string.ascii_lowercase)
+    password += random.choice(string.digits)
+    password += random.choice(string.punctuation)
+
+    for _ in range(4):
+        password += random.choice(string.ascii_uppercase)
+        password += random.choice(string.ascii_lowercase)
+        password += random.choice(string.digits)
+        password += random.choice(string.punctuation)
+    
+    password = list(password)
+    random.shuffle(password)
+    password = "".join(password)
+    return password
+
+
+def build_account_dict(user_info):
+    password = generate_password()
+
+    user_info = user_info.decode("utf-8").split(",")
     user_account_details = dict()
-    user_account_details["employee_id"] = user_info[0].strip()
+    user_account_details["id"] = user_info[0].strip()
     user_account_details["firstname"] = user_info[1].strip()
     user_account_details["lastname"] = user_info[2].strip()
     user_account_details["email"] = user_info[3].strip()
     user_account_details["mobile_number"] = user_info[4].strip()
     user_account_details["role"] = user_info[5].strip()
     user_account_details["nationality"] = user_info[6].strip()
+    user_account_details["password"] = password
+    user_account_details["confirm_password"] = password
 
     return user_account_details
