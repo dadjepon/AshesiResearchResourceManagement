@@ -52,7 +52,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     defines attributes for a custom user model
 
     Attributes:
-        - employee_id: user's employee id
+        - id: user's employee id
         - firstname: user's first name
         - lastname: user's last name
         - email: user's email address
@@ -65,7 +65,6 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         - is_active: user's account status
     """
 
-    employee_id = models.IntegerField(primary_key=True)
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     email = models.EmailField(_('email address'), unique=True)
