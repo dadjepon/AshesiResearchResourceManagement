@@ -1,10 +1,11 @@
-import re
+from os import path
+from magic import from_buffer
+from django.core.mail import EmailMultiAlternatives, BadHeaderError
 
 
 # EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@ashesi\.edu\.gh$"
 EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@([a-z\d-]+)\.([a-z]{2,10})(\.[a-z]{2,10})?$"
 PASSWORD_REGEX = r"^(?=(.*[A-Z]){2,})(?=(.*[a-z]){2,})(?=(.*\d){2,})(?=(.*[!#$%&()*+,-.:;<=>?@_~]){2,}).{8,}$"
-
 
 
 def read_country_file(filename):
@@ -87,3 +88,25 @@ def build_account_dict(user_info):
     user_account_details["confirm_password"] = password
 
     return user_account_details
+
+
+def disseminate_email(subject, message, sender, recipient_list, attachment_path=None):
+    """
+    sends an email to the recipient_list
+    """
+
+    try:
+        email = EmailMultiAlternatives(subject, '', sender, recipient_list)
+        email.attach_alternative(message, "text/html")
+
+        if attachment_path:
+            with open(attachment_path, "rb") as attachment:
+                content = attachment.read()
+
+            mime_type = from_buffer(content, mime=True)
+            filename = path.basename(attachment_path)
+            email.attach(filename, content, mime_type)
+
+        email.send()
+    except BadHeaderError:
+        return None            
