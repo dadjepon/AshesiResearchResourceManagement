@@ -1,4 +1,5 @@
 from ast import arg
+import email
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from django.utils import timezone
 from .models import UserAccount, TokenBlacklist
 from .serializers import (AccountRegistrationSerializer, AccountLoginSerializer, 
                           UserAccountSerializer)
-from .helper import read_user_data, build_account_dict
+from .helper import read_user_data, build_account_dict, disseminate_email
 
 
 class RegisterUsersView(APIView):
@@ -42,10 +43,27 @@ class RegisterUsersView(APIView):
             serializer = AccountRegistrationSerializer(data=user_account_details) # type: ignore
             if serializer.is_valid():
                 serializer.save()
-                serializer.data["status"] = "success"
+                serializer.data["account_status"] = "success"
+
+                # send email to user with login details
+                subject = "ARRM Account Details"
+                message = f"Hello {user_account_details['firstname'].capitalize()},\n\nYour ARRM account has been created.\n"
+                message += f"\nLogin details:\nEmail: {user_account_details['email']}\nPassword: {user_account_details['password']}\n"
+                message += f"\nPlease change your password after logging in."
+                message += f"\nRegards,\nARRM Team."
+                sender = "projectile.webgeeks@gmail.com"
+                recipient_list = [user_account_details["email"]]
+
+                email_sent = disseminate_email(subject, message, sender, recipient_list)
+                if email_sent == None:
+                    serializer.data["email_sent"] = "failed"
+                else:
+                    serializer.data["email_sent"] = "success"
+
                 user_creation_response.append(serializer.data)
+
             else:
-                serializer.errors["status"] = "failed"
+                serializer.errors["account_status"] = "failed"
                 user_creation_response.append(serializer.errors)
 
         return Response(user_creation_response, status=status.HTTP_200_OK)
