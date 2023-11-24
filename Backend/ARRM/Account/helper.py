@@ -3,7 +3,7 @@ from magic import from_buffer
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
 
 
-# EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@ashesi\.edu\.gh$"
+# EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@(ashesi\.edu\.gh|aucampus\.onmicrosoft\.com)$"
 EMAIL_REGEX = r"^[^0-9!@#$%^&*(+=)\\[\].></{}`]\w+([\.-_]?\w+)*@([a-z\d-]+)\.([a-z]{2,})(\.[a-z]{2,})?$"
 PASSWORD_REGEX = r"^(?=(.*[A-Z]){2,})(?=(.*[a-z]){2,})(?=(.*\d){2,})(?=(.*[!#$%&()*+,-.:;<=>?@_~]){2,}).{8,}$"
 
