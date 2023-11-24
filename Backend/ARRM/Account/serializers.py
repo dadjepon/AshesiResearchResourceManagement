@@ -113,7 +113,6 @@ class AccountLoginSerializer(TokenObtainPairSerializer):
     """
     
     email = serializers.EmailField(
-        write_only=True, 
         required=True,
         validators=[EMAIL_REGEX]
     )
@@ -134,6 +133,9 @@ class AccountLoginSerializer(TokenObtainPairSerializer):
             "access": {"read_only": True},
             "refresh": {"read_only": True}
         }
+        default_error_messages = {
+            "no_active_account": "No active account found with the given credentials"
+        }
 
     @classmethod
     def get_token(cls, user):
@@ -146,31 +148,33 @@ class AccountLoginSerializer(TokenObtainPairSerializer):
         return token
     
     def validate_email(self, value):
-        return re.match(EMAIL_REGEX, value)
+        if re.match(EMAIL_REGEX, value):
+            return value
+        
+        raise serializers.ValidationError("Invalid email address")
     
-    def validate_password(self, value):
-        return re.match(PASSWORD_REGEX, value)
+    # def validate_password(self, value):
+    #     if re.match(PASSWORD_REGEX, value):
+    #         return value
+        
+    #     raise serializers.ValidationError("Password does not match required format.")
     
     def validate(self, attrs):
         email = attrs.get("email")
         password = attrs.get("password")
 
-        user = UserAccount.objects.filter(email=email).first()
-        if not user:
+        user = UserAccount.objects.get(email=email)
+        if user is None:
             raise serializers.ValidationError("No user found with this email!")
         
         if not user.check_password(password): # type: ignore
-            raise serializers.ValidationError("Invalid email or password!")
+            raise serializers.ValidationError("Incorrect password!")
         
         if not user.is_active:
             raise serializers.ValidationError("Account is disabled!")
         
-        user_data = UserAccountSerializer(user).data
         token = self.get_token(user) # type: ignore
+        user_data = UserAccountSerializer(user).data
         user_data["refresh_token"] = str(token)
         user_data["access_token"] = str(token.access_token) # type: ignore
         return user_data
-    
-    default_error_messages = {
-        "no_active_account": "No active account found with the given credentials"
-    }

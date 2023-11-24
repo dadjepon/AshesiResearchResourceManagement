@@ -69,7 +69,6 @@ def generate_password():
 
     random.shuffle(all_chars)
     password = ''.join(all_chars)
-    print(password)
     return password
 
 
