@@ -1,7 +1,6 @@
-from cProfile import label
-import email
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.password_validation import validate_password
 from .models import UserAccount, Role, TokenBlacklist
 from .helper import EMAIL_REGEX, PASSWORD_REGEX
 import re
@@ -133,9 +132,6 @@ class AccountLoginSerializer(TokenObtainPairSerializer):
             "access": {"read_only": True},
             "refresh": {"read_only": True}
         }
-        default_error_messages = {
-            "no_active_account": "No active account found with the given credentials"
-        }
 
     @classmethod
     def get_token(cls, user):
@@ -178,3 +174,52 @@ class AccountLoginSerializer(TokenObtainPairSerializer):
         user_data["refresh_token"] = str(token)
         user_data["access_token"] = str(token.access_token) # type: ignore
         return user_data
+    
+
+class ChangePasswordSerializer(serializers.Serializer):
+
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+
+    def validate_old_password(self, value):
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Incorrect password!")
+        
+        if value == self.validated_data["new_password"]: # type: ignore
+            raise serializers.ValidationError("New password must be different from old password!")
+        
+        if not re.match(PASSWORD_REGEX, value):
+            raise serializers.ValidationError("Invalid password")
+        
+        return value
+    
+    def validate_new_password(self, value):
+        if not re.match(PASSWORD_REGEX, value):
+            raise serializers.ValidationError("Invalid password")
+        
+        return value
+    
+    def validate_confirm_password(self, value):
+        if not re.match(PASSWORD_REGEX, value):
+            raise serializers.ValidationError("Invalid password")
+        
+        return value
+    
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError("Passwords do not match")
+        
+        validate_password(attrs["new_password"], user=self.context["request"].user)
+        return attrs
+    
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+
+        if user.pk != instance.pk:
+            raise serializers.ValidationError("You do not have permission for this user!")
+        
+        instance.set_password(validated_data["new_password"])
+        instance.save()
+        return instance
