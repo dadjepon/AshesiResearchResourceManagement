@@ -1,4 +1,4 @@
-import re
+from calendar import c
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, TokenErro
 from django.utils import timezone
 
 from .models import UserAccount, TokenBlacklist
-from .serializers import (AccountRegistrationSerializer, AccountLoginSerializer, 
+from .serializers import (AccountRegistrationSerializer, AccountLoginSerializer, ChangePasswordSerializer, 
                           UserAccountSerializer)
 from .permissions import IsBlacklistedToken
 from .helper import read_user_data, build_account_dict, disseminate_email
@@ -44,7 +44,6 @@ class RegisterUsersView(APIView):
             serializer = AccountRegistrationSerializer(data=user_account_details) # type: ignore
             if serializer.is_valid():
                 serializer.save()
-                serializer.data["account_status"] = "success"
 
                 # send email to user with login details
                 subject = "ARRM Account Details"
@@ -61,17 +60,18 @@ class RegisterUsersView(APIView):
                     f"<p>Please change your password after logging in.</p>"
                     f"<p>Regards,<br>ARRM Team.</p>"
                 )
-                print(user_account_details["password"])
                 sender = "projectile.webgeeks@gmail.com"
                 recipient_list = [user_account_details["email"]]
 
                 email_sent = disseminate_email(subject, message, sender, recipient_list)
-                if email_sent == None:
-                    serializer.data["email_sent"] = "failed"
-                else:
-                    serializer.data["email_sent"] = "success"
                 
                 user_creation_response.append(serializer.data)
+                user_creation_response[-1]["account_status"] = "success"
+
+                if email_sent == None:
+                    user_creation_response[-1]["email_sent"] = "failed"
+                else:
+                    user_creation_response[-1]["email_sent"] = "success"
 
             else:
                 serializer.errors["account_status"] = "failed"
@@ -126,6 +126,23 @@ class AccountView(APIView):
         user = UserAccount.objects.get(id=request.user.id) # type: ignore
         serializer = UserAccountSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class ChangePasswordView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+    queryset = UserAccount.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        """
+        changes the user's password
+        """
+
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = ChangePasswordSerializer(instance, data=request.data, partial=partial, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({"success": "Password changed successfully"}, status=status.HTTP_200_OK)
     
 
 class AccountLogoutView(APIView):
