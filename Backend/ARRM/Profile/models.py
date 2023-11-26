@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator
 from datetime import datetime
 
 from Account.models import UserAccount
-from .helper import transcript_upload_path
+from .helper import transcript_upload_path, sample_upload_path
 
 
 class DegreeType(models.TextChoices):
@@ -64,3 +64,25 @@ class Degree(models.Model):
 
     def __str__(self):
         return self.type
+
+
+class WritingSample(models.Model):
+    """
+    defines attributes for a writing sample model
+
+    Attributes:
+        - user: user's account
+        - title: title of writing sample
+        - publication_link: link to publication
+        - sample: writing sample
+        - created_at: date writing sample was created
+    """
+
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    publication_link = models.CharField(max_length=100, blank=True, null=True)
+    sample = models.FileField(upload_to=sample_upload_path, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
