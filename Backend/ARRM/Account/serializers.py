@@ -45,6 +45,9 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
         if not re.match(EMAIL_REGEX, value):
             raise serializers.ValidationError("Invalid email address")
         
+        if UserAccount.objects.filter(email=value).exists():
+            raise serializers.ValidationError("An account with this email already exists!")
+        
         return value
     
     def validate_password(self, value):
@@ -62,6 +65,9 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
     def validate_mobile_number(self, value):
         if not value.isdigit():
             raise serializers.ValidationError("Mobile number must contain only numbers")
+        
+        if UserAccount.objects.filter(mobile_number=value).exists():
+            raise serializers.ValidationError("An account with this mobile number already exists!")
         
         return value
     
