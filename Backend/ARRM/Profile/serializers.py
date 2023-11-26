@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from datetime import datetime
-from .models import Degree, DegreeType
+from .models import Degree, DegreeType, WritingSample
 
 
 class DegreeSerializer(serializers.ModelSerializer):
@@ -43,3 +43,30 @@ class DegreeSerializer(serializers.ModelSerializer):
 
         degree.save()
         return degree
+    
+
+class WritingSampleSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField("get_user")
+
+    class Meta:
+        model = WritingSample
+        fields = ["id", "user", "title", "publication_link", "sample", "created_at"]
+
+    def get_user(self, obj):
+        return self.context["request"].user.email
+    
+    def create(self, validated_data):
+        if not validated_data["publication_link"] and not validated_data["sample"]:
+            raise serializers.ValidationError("You must provide either a publication link or a sample file!")
+        
+        sample = WritingSample(
+            user=validated_data["user"],
+            title=validated_data["title"],
+            publication_link=validated_data["publication_link"]
+        )
+
+        if "sample" in validated_data:
+            sample.sample = validated_data["sample"]
+
+        sample.save()
+        return sample
