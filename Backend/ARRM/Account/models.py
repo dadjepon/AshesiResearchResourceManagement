@@ -68,7 +68,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     email = models.EmailField(_('email address'), unique=True)
-    mobile_number = models.CharField(max_length=20)
+    mobile_number = models.CharField(max_length=20, unique=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.RA)
     nationality = models.CharField(max_length=150)
     account_status = models.CharField(max_length=20, default="incomplete")
