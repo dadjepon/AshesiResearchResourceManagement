@@ -40,7 +40,7 @@ class DegreeType(models.TextChoices):
 
 class Degree(models.Model):
     """
-    defines attributes for a degree model
+    defines attributes for a degree class
 
     Attributes:
         - user: user's account
@@ -68,7 +68,7 @@ class Degree(models.Model):
 
 class WritingSample(models.Model):
     """
-    defines attributes for a writing sample model
+    defines attributes for a writing sample class
 
     Attributes:
         - user: user's account
@@ -79,8 +79,8 @@ class WritingSample(models.Model):
     """
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
-    title = models.CharField(max_length=100)
-    publication_link = models.CharField(max_length=100, blank=True, null=True)
+    title = models.CharField(max_length=500)
+    publication_link = models.CharField(max_length=250, blank=True, null=True)
     sample = models.FileField(upload_to=sample_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

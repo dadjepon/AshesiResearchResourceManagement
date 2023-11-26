@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from datetime import datetime
+
 from .models import Degree, DegreeType, WritingSample
+from Account.models import UserAccount
 
 
 class DegreeSerializer(serializers.ModelSerializer):
@@ -27,6 +29,10 @@ class DegreeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid graduation year!")
         
         return value
+    
+    def validate(self, attrs):
+        attrs["user"] = UserAccount.objects.filter(id=self.context["request"].user.id).first()
+        return attrs
     
     def create(self, validated_data):
 
@@ -55,16 +61,23 @@ class WritingSampleSerializer(serializers.ModelSerializer):
     def get_user(self, obj):
         return self.context["request"].user.email
     
-    def create(self, validated_data):
-        if not validated_data["publication_link"] and not validated_data["sample"]:
+    def validate(self, attrs):
+        if not "publication_link" in attrs.keys() and not "sample" in attrs.keys():
             raise serializers.ValidationError("You must provide either a publication link or a sample file!")
+        
+        attrs["user"] = UserAccount.objects.filter(id=self.context["request"].user.id).first()
+        return attrs
+    
+    def create(self, validated_data):
         
         sample = WritingSample(
             user=validated_data["user"],
             title=validated_data["title"],
-            publication_link=validated_data["publication_link"]
         )
 
+        if "publication_link" in validated_data:
+            sample.publication_link = validated_data["publication_link"]	
+            
         if "sample" in validated_data:
             sample.sample = validated_data["sample"]
 

@@ -119,7 +119,7 @@ class DeleteDegreePermanentlyView(APIView):
         
         degree.delete()
         
-        if os.path.exists(degree.transcript.path):
+        if degree.transcript.path and os.path.exists(degree.transcript.path):
             os.remove(degree.transcript.path)
 
         if degree.transcript:
@@ -207,7 +207,7 @@ class DeleteWritingSampleView(APIView):
         
         sample.delete()
         
-        if os.path.exists(sample.sample.path):
+        if sample.sample.path and os.path.exists(sample.sample.path):
             os.remove(sample.sample.path)
 
         if sample.sample:
