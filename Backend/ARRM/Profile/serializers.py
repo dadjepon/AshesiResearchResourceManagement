@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from datetime import datetime
+import os
 
 from .models import Degree, DegreeType, WritingSample
 from Account.models import UserAccount
@@ -31,6 +32,10 @@ class DegreeSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
+        if "transcript" in attrs.keys():
+            if Degree.objects.filter(user=self.context["request"].user, transcript=attrs["transcript"]).exists():
+                raise serializers.ValidationError("You already have a transcript with this name!")
+
         attrs["user"] = UserAccount.objects.filter(id=self.context["request"].user.id).first()
         return attrs
     
@@ -65,6 +70,14 @@ class WritingSampleSerializer(serializers.ModelSerializer):
         if not "publication_link" in attrs.keys() and not "sample" in attrs.keys():
             raise serializers.ValidationError("You must provide either a publication link or a sample file!")
         
+        if "publication_link" in attrs.keys():
+            if WritingSample.objects.filter(user=self.context["request"].user, publication_link=attrs["publication_link"]).exists():
+                raise serializers.ValidationError("You already have a writing sample with this link!")
+            
+        if "sample" in attrs.keys():
+            if os.path.splitext(attrs["sample"].name)[1] != ".pdf":
+                raise serializers.ValidationError("Writing sample must be a PDF file!")
+
         attrs["user"] = UserAccount.objects.filter(id=self.context["request"].user.id).first()
         return attrs
     

@@ -1,3 +1,4 @@
+import re
 from rest_framework.views import APIView
 from rest_framework import status, generics
 from rest_framework.response import Response
@@ -205,12 +206,14 @@ class DeleteWritingSampleView(APIView):
         if sample.user != request.user:
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
+        # if sample.sample == "":
+        #     # return Response({"error": "Writing sample is not uploaded!"}, status=status.HTTP_400_BAD_REQUEST)
+        #     pass
+
         sample.delete()
         
-        if sample.sample.path and os.path.exists(sample.sample.path):
-            os.remove(sample.sample.path)
-
-        if sample.sample:
-            sample.sample.delete(save=True)
+        if sample.sample != "":
+            if os.path.exists(sample.sample.path):
+                os.remove(sample.sample.path)
 
         return Response({"success": "Writing sample deleted successfully"}, status=status.HTTP_200_OK)
