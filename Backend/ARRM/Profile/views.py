@@ -3,10 +3,11 @@ from rest_framework.views import APIView
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 import os
 
-from .models import Degree, WritingSample
-from .serializers import DegreeSerializer, WritingSampleSerializer
+from .models import (Degree, WritingSample)
+from .serializers import (DegreeSerializer, WritingSampleSerializer)
 from Account.models import UserAccount
 from Account.permissions import IsBlacklistedToken
 
@@ -205,10 +206,6 @@ class DeleteWritingSampleView(APIView):
         
         if sample.user != request.user:
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
-        
-        # if sample.sample == "":
-        #     # return Response({"error": "Writing sample is not uploaded!"}, status=status.HTTP_400_BAD_REQUEST)
-        #     pass
 
         sample.delete()
         

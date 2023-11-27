@@ -2,7 +2,7 @@ from rest_framework import serializers
 from datetime import datetime
 import os
 
-from .models import Degree, DegreeType, WritingSample
+from .models import (Degree, DegreeType, WritingSample)
 from Account.models import UserAccount
 
 
@@ -12,8 +12,8 @@ class DegreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Degree
         fields = [
-            "id", "user", "type", "university", "major", 
-            "graduation_year", "transcript", "created_at", "is_deleted"
+            "id", "user", "type", "university", "major", "graduation_year", 
+            "transcript", "created_at", "is_deleted", "is_verified"
         ]
 
     def get_user(self, obj):
