@@ -15,13 +15,14 @@ class AddAcademicYearView(APIView):
         serializer = AcademicYearSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
+            AcademicYear.mark_completed()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 class RetrieveAcademicYearsView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
     serializer_class = AcademicYearSerializer
     queryset = AcademicYear.objects.all()
     filterset_fields = ["start_year", "end_year", "is_completed"]
@@ -53,13 +54,14 @@ class AddSemesterView(APIView):
         serializer = SemesterSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
+            Semester.mark_completed()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RetrieveSemesterView(APIView):
-    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
     def get(self, request, semester_id):
         try:
@@ -72,7 +74,7 @@ class RetrieveSemesterView(APIView):
     
 
 class RetrieveSemestersView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
     serializer_class = SemesterSerializer
     queryset = Semester.objects.all()
     filterset_fields = ["academic_year", "semester", "is_completed"]

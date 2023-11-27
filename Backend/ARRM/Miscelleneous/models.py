@@ -16,8 +16,8 @@ class AcademicYear(models.Model):
     """
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
-    start_year = models.IntegerField(validators=[MaxValueValidator(datetime.now().year)])
-    end_year = models.IntegerField(validators=[MaxValueValidator(datetime.now().year)])
+    start_year = models.IntegerField()
+    end_year = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_completed = models.BooleanField(default=False)
 
@@ -29,7 +29,7 @@ class AcademicYear(models.Model):
         """
         marks all academic years as completed if the current year is greater than the end year
         """
-        cls.objects.filter(end_year__lt=timezone.now().year).update(is_completed=True)
+        cls.objects.filter(end_year__lte=timezone.now().year).update(is_completed=True)
 
 
 class SemesterChoices(models.TextChoices):
@@ -71,4 +71,4 @@ class Semester(models.Model):
         """
         marks all semesters as completed if the current date is greater than the end date
         """
-        cls.objects.filter(end_date__lt=timezone.now().date()).update(is_completed=True)
+        cls.objects.filter(end_date__lte=timezone.now().date()).update(is_completed=True)
