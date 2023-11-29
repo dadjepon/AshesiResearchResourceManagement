@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import UserAccount, Role, TokenBlacklist
+from .models import UserAccount, Status, Role, TokenBlacklist
 from .helper import EMAIL_REGEX, PASSWORD_REGEX
 import re
 
@@ -20,7 +20,7 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
         model = UserAccount
         fields = [
             "id", "firstname", "lastname", "email", "password", "confirm_password",
-            "mobile_number", "role", "nationality", "last_login"
+            "mobile_number", "role", "nationality", "last_login", "account_status"
         ]
 
     def validate_id(self, value):        
@@ -74,6 +74,12 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
     def validate_role(self, value):
         if value not in Role.values:
             raise serializers.ValidationError("Invalid role")
+        
+        return value
+    
+    def validate_account_status(self, value):
+        if value not in Status.values:
+            raise serializers.ValidationError("Invalid account status!")
         
         return value
 

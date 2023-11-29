@@ -47,22 +47,31 @@ class Role(models.TextChoices):
     FACULTY = "faculty", _("Faculty")
 
 
+class Status(models.TextChoices):
+    """
+    defines choices for user account status
+    statuses: (complete, incomplete, suspended)
+    """
+    COMPLETE = "complete", _("Complete")
+    INCOMPLETE = "incomplete", _("Incomplete")
+    SUSPENDED = "suspended", _("Suspended")
+
+
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     """
     defines attributes for a custom user model
 
     Attributes:
-        - id: user's employee id
-        - firstname: user's first name
-        - lastname: user's last name
-        - email: user's email address
-        - mobile_number: user's mobile number
-        - role: user's role (admin, RA, faculty)
-        - nationality: user's nationality
-        - account_status: user's account status (complete, incomplete, pending, disabled)
-        - is_staff: user's staff status
-        - is_superuser: user's superuser status
-        - is_active: user's account status
+        - firstname (CharField): user's first name
+        - lastname (CharField): user's last name
+        - email (EmailField): user's email address
+        - mobile_number (CharField): user's mobile number
+        - role (CharField): user's role (admin, RA, faculty)
+        - nationality (CharField): user's nationality
+        - account_status (CharField): user's account status (complete, incomplete, suspended)
+        - is_staff (BooleanField): user's staff status
+        - is_superuser (BooleanField): user's superuser status
+        - is_active (BooleanField): user's active status
     """
 
     firstname = models.CharField(max_length=50)
@@ -92,8 +101,8 @@ class TokenBlacklist(models.Model):
     defines attributes for a token blacklist model
 
     Attributes:
-        - token: token to be blacklisted
-        - blacklisted_at: time when token was blacklisted
+        - token (CharField): token to be blacklisted
+        - blacklisted_at (DateTimeField): date and time token was blacklisted
     """
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
