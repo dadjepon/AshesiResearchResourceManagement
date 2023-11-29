@@ -35,6 +35,10 @@ class DegreeSerializer(serializers.ModelSerializer):
         if "transcript" in attrs.keys():
             if Degree.objects.filter(user=self.context["request"].user, transcript=attrs["transcript"]).exists():
                 raise serializers.ValidationError("You already have a transcript with this name!")
+            
+        if "is_verified" in attrs.keys():
+            if not self.context["request"].user.is_staff:
+                attrs["is_verified"] = False
 
         attrs["user"] = UserAccount.objects.filter(id=self.context["request"].user.id).first()
         return attrs
