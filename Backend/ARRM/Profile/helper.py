@@ -28,3 +28,35 @@ def sample_upload_path(instance, filename):
 
     username = instance.user.email.split("@")[0]
     return f"samples/{username}/{filename}"
+
+
+def profile_picture_upload_path(instance, filename):
+    """
+    defines upload path for profile picture
+
+    Args:
+        - instance: instance of profile picture model
+        - filename: name of file
+
+    Returns:
+        - path: path to upload profile picture
+    """
+
+    username = instance.user.email.split("@")[0]
+    return f"profile_pictures/{username}_{filename}"
+
+
+def cv_upload_path(instance, filename):
+    """
+    defines upload path for cv
+
+    Args:
+        - instance: instance of cv model
+        - filename: name of file
+
+    Returns:
+        - path: path to upload cv
+    """
+
+    username = instance.user.email.split("@")[0]
+    return f"cvs/{username}_{filename}"
