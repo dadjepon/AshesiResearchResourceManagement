@@ -1,3 +1,5 @@
+import random
+import string
 from os import path
 from magic import from_buffer
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
@@ -44,9 +46,6 @@ def read_user_data(user_data_file):
     
     return user_data
 
-
-import random
-import string
 
 def generate_password():
     """
