@@ -123,7 +123,7 @@ class ResearchAssistant(models.Model):
     profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
     linkedin_url = models.CharField(max_length=250, blank=True, null=True)
     cv = models.FileField(upload_to=cv_upload_path, blank=True, null=True)
-    interests = models.ManyToManyField(Interest, blank=True, null=True)
+    interests = models.ManyToManyField(Interest, blank=True)
 
     def __str__(self):
         return f"{self.user.firstname} {self.user.lastname} - {self.linkedin_url}"
@@ -158,7 +158,7 @@ class Faculty(models.Model):
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
     department = models.CharField(max_length=100, choices=Department.choices, blank=True, null=True)
-    interests = models.ManyToManyField(Interest, blank=True, null=True)
+    interests = models.ManyToManyField(Interest, blank=True)
 
     def __str__(self):
         return f"{self.user.firstname} {self.user.lastname} - {self.department}"
