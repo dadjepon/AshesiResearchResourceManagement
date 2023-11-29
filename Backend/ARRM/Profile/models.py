@@ -121,12 +121,25 @@ class ResearchAssistant(models.Model):
     user = models.OneToOneField(UserAccount, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
-    interests = models.ManyToManyField(Interest, blank=True, null=True)
     linkedin_url = models.CharField(max_length=250, blank=True, null=True)
     cv = models.FileField(upload_to=cv_upload_path, blank=True, null=True)
+    interests = models.ManyToManyField(Interest, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.firstname} {self.user.lastname} - {self.linkedin_url}"
+    
+
+class Department(models.TextChoices):
+    """
+    defines choices for department types
+    types: (Humanities & Social Sciences, Business Administration, Computer Science &
+            Information Systems, Engineering)
+    """
+
+    Humanities_Social_Sciences = "Humanities & Social Sciences", _("Humanities & Social Sciences")
+    Business_Administration = "Business Administration", _("Business Administration")
+    Computer_Science_Information_Systems = "Computer Science & Information Systems", _("Computer Science & Information Systems")
+    Engineering = "Engineering", _("Engineering")
     
 
 class Faculty(models.Model):
@@ -144,7 +157,7 @@ class Faculty(models.Model):
     user = models.OneToOneField(UserAccount, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
-    department = models.CharField(max_length=100, blank=True, null=True)
+    department = models.CharField(max_length=100, choices=Department.choices, blank=True, null=True)
     interests = models.ManyToManyField(Interest, blank=True, null=True)
 
     def __str__(self):
