@@ -11,8 +11,8 @@ class AcademicYear(models.Model):
     defines attributes for an academic year class
 
     Attributes:
-        - start_year: starting year of academic year
-        - end_year: ending year of academic year
+        - start_year (IntegerField): starting year of academic year
+        - end_year (IntegerField): ending year of academic year
     """
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
@@ -49,10 +49,10 @@ class Semester(models.Model):
     defines attributes for a semester class
 
     Attributes:
-        - year: academic year
-        - semester: semester (Fall, Winter, Spring, Summer)
-        - start_date: starting date of semester
-        - end_date: ending date of semester
+        - year (AcademicYear): academic year of semester
+        - semester (CharField): semester type (Fall, Winter, Spring, Summer)
+        - start_date (DateField): starting date of semester
+        - end_date (DateField): ending date of semester
     """
 
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
