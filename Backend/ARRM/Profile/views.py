@@ -70,6 +70,23 @@ class UpdateDegreeView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+class VerifyDegreeView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+
+    def patch(self, request, degree_id):
+        try:
+            degree = Degree.objects.get(id=degree_id)
+        except Degree.DoesNotExist:
+            return Response({"error": "Degree not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not request.user.is_staff:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        degree.is_verified = True
+        degree.save()
+        return Response({"success": "Degree verified successfully"}, status=status.HTTP_200_OK)
+
+
 class DeleteDegreeView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
@@ -121,8 +138,9 @@ class DeleteDegreePermanentlyView(APIView):
         
         degree.delete()
         
-        if degree.transcript.path and os.path.exists(degree.transcript.path):
-            os.remove(degree.transcript.path)
+        if degree.transcript != "":
+            if os.path.exists(degree.transcript.path):
+                os.remove(degree.transcript.path)
 
         if degree.transcript:
             degree.transcript.delete(save=True)
