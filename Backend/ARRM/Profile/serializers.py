@@ -2,8 +2,9 @@ import os, re
 from rest_framework import serializers
 from datetime import datetime
 
-from .models import (Degree, DegreeType, WritingSample, Interest, ResearchAssistant, 
-                     Department, Faculty)
+from .models import (
+    Degree, DegreeType, WritingSample, StudyArea, Interest, 
+    Department, ResearchAssistant, RAInterests, Faculty, FacultyInterests)
 from .helper import LINKIN_PROFILE_REGEX
 from Account.models import UserAccount
 
@@ -110,25 +111,28 @@ class InterestSerializer(serializers.ModelSerializer):
         model = Interest
         fields = ["id", "name", "study_area"]
 
+    def validate_study_area(self, value):
+        if value not in StudyArea.values:
+            raise serializers.ValidationError("Invalid study area!")
+        
+        return value
+
     def validate(self, attrs):
         if Interest.objects.filter(name=attrs["name"]).exists():
-            raise serializers.ValidationError("Interest already exists!")
-        
-        if Interest.objects.filter(study_area=attrs["study_area"]).exists():
             raise serializers.ValidationError("Interest already exists!")
         
         return attrs
     
 
 class ResearchAssistantSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField("get_id")
+    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = ResearchAssistant
-        fields = ["id", "bio", "profile_picture", "interests", "linkedin_url", "cv"]
+        fields = ["user", "bio", "profile_picture", "linkedin_url", "cv"]
 
-    def get_id(self, obj):
-        return self.context["request"].user.id
+    def get_user(self, obj):
+        return self.context["request"].user.email
     
     def validate_linkedin_url(self, value):
         if not re.match(LINKIN_PROFILE_REGEX, value):
@@ -137,46 +141,56 @@ class ResearchAssistantSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        for interest in attrs["interests"]:
-            if not Interest.objects.filter(id=interest.id).exists():
-                raise serializers.ValidationError(f"Invalid interest: {interest}!")
-            
-            if ResearchAssistant.objects.filter(id=self.context["request"].user.id, interests=interest).exists():
-                raise serializers.ValidationError(f"Interest {interest} already exists!")
+        if "interests" in attrs.keys():
+            for interest in attrs["interests"]:
+                if not Interest.objects.filter(id=interest.id).exists():
+                    raise serializers.ValidationError(f"Invalid interest: {interest}!")
+                
+                if RAInterests.objects.filter(ra=self.context["request"].user.id, interest=interest).exists():
+                    raise serializers.ValidationError(f"Interest {interest} already exists for this RA!")
             
         if "profile_picture" in attrs.keys():
             if os.path.splitext(attrs["profile_picture"].name)[1] not in [".png", ".jpg", ".jpeg"]:
                 raise serializers.ValidationError("Profile picture must be an image!")
-            
+                        
         if "cv" in attrs.keys():
             if os.path.splitext(attrs["cv"].name)[1] != ".pdf":
                 raise serializers.ValidationError("CV must be a PDF file!")
             
+        user = UserAccount.objects.filter(id=self.context["request"].user.id).first()
+        attrs["user"] = user
         return attrs
     
 
 class FacultySerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = Faculty
-        fields = ["id", "bio", "profile_picture", "department", "interests"]
+        fields = ["user", "bio", "profile_picture", "department"]
 
+    def get_user(self, obj):
+        return self.context["request"].user.email
+    
     def validate_department(self, value):
         if value not in Department.values:
             raise serializers.ValidationError("Invalid department!")
         
         return value
-
+    
     def validate(self, attrs):
-        for interest in attrs["interests"]:
-            if not Interest.objects.filter(id=interest.id).exists():
-                raise serializers.ValidationError(f"Invalid interest: {interest}!")
-            
-            if Faculty.objects.filter(id=self.context["request"].user.id, interests=interest).exists():
-                raise serializers.ValidationError(f"Interest {interest} already exists for {self.context['request'].user.email}")
+        if "interests" in attrs.keys():
+            for interest in attrs["interests"]:
+                if not Interest.objects.filter(id=interest.id).exists():
+                    raise serializers.ValidationError(f"Invalid interest: {interest}!")
+                
+                if FacultyInterests.objects.filter(faculty=self.context["request"].user.id, interest=interest).exists():
+                    raise serializers.ValidationError(f"Interest {interest} already exists for this faculty!")
             
         if "profile_picture" in attrs.keys():
             if os.path.splitext(attrs["profile_picture"].name)[1] not in [".png", ".jpg", ".jpeg"]:
                 raise serializers.ValidationError("Profile picture must be an image!")
             
+        user = UserAccount.objects.filter(id=self.context["request"].user.id).first()
+        attrs["user"] = user
         return attrs
