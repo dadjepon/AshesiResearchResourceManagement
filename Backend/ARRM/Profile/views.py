@@ -1,4 +1,3 @@
-import re
 from rest_framework.views import APIView
 from rest_framework import status, generics
 from rest_framework.response import Response
@@ -6,10 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 import os
 
-from .models import (Degree, WritingSample, Interest, ResearchAssistant, Faculty)
-from .serializers import (DegreeSerializer, WritingSampleSerializer, InterestSerializer, 
-                          ResearchAssistantSerializer, FacultySerializer)
-from Account.models import UserAccount, Role
+from .models import (
+    Degree, WritingSample, Interest, ResearchAssistant, RAInterests,
+    Faculty, FacultyInterests)
+from .serializers import (
+    DegreeSerializer, WritingSampleSerializer, InterestSerializer, ResearchAssistantSerializer,
+    FacultySerializer)
+from Account.models import Role
 from Account.permissions import IsBlacklistedToken
 
 
@@ -102,7 +104,7 @@ class DeleteDegreeView(APIView):
         
         degree.is_deleted = True
         degree.save()
-        return Response({"success": "Degree deleted successfully"}, status=status.HTTP_200_OK)
+        return Response({"success": "Degree has been moved to trash!"}, status=status.HTTP_200_OK)
     
 
 class RestoreDegreeView(APIView):
@@ -119,7 +121,7 @@ class RestoreDegreeView(APIView):
         
         degree.is_deleted = False
         degree.save()
-        return Response({"success": "Degree restored successfully"}, status=status.HTTP_200_OK)
+        return Response({"success": "Degree restored successfully from trash!"}, status=status.HTTP_200_OK)
 
 
 class DeleteDegreePermanentlyView(APIView):
@@ -146,7 +148,7 @@ class DeleteDegreePermanentlyView(APIView):
         if degree.transcript:
             degree.transcript.delete(save=True)
 
-        return Response({"success": "Degree deleted successfully"}, status=status.HTTP_200_OK)
+        return Response({"success": "Degree has been deleted permanently!"}, status=status.HTTP_200_OK)
 
 
 class AddWritingSampleView(APIView):
@@ -250,14 +252,14 @@ class AddInterestView(APIView):
                     except ResearchAssistant.DoesNotExist:
                         ra = ResearchAssistant.objects.create(user=request.user)
 
-                    ra.interests.add(serializer.data["id"])
+                    RAInterests.objects.create(ra=ra, interest=Interest.objects.get(id=serializer.data["id"]))
                 else:
                     try:
                         faculty = Faculty.objects.get(user=request.user)
                     except Faculty.DoesNotExist:
                         faculty = Faculty.objects.create(user=request.user)
 
-                    faculty.interests.add(serializer.data["id"])
+                    FacultyInterests.objects.create(faculty=faculty, interest=Interest.objects.get(id=serializer.data["id"]))
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
@@ -285,108 +287,197 @@ class DeleteInterestView(APIView):
         
         interest.delete()
         return Response({"success": "Interest deleted successfully"}, status=status.HTTP_200_OK)
-
-
-class CreateResearchAssistantView(APIView):
-    permission_classes = [IsAuthenticated, IsBlacklistedToken]
-
-    def post(self, request):
-        if request.user.role != Role.RA:
-            return Response({"error": "You are not a research assistant!"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if ResearchAssistant.objects.filter(user=request.user).exists():
-            return Response({"error": "You are already a research assistant!"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = ResearchAssistantSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-class RetrieveResearchAssistantView(APIView):
-    permission_classes = [IsAuthenticated, IsBlacklistedToken]
-
-    def get(self, request):        
-        serializer = ResearchAssistantSerializer(request.user, context={"request": request})
-        extended_interests = []
-        for interest in serializer.data["interests"]:
-            extended_interests.append(InterestSerializer(interest).data)
-        serializer.data["interests"] = extended_interests
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 class UpdateResearchAssistantView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
     def patch(self, request):
-        serializer = ResearchAssistantSerializer(request.user, data=request.data, partial=True, context={"request": request})
-        if serializer.is_valid():
-            # if a new profile picture is uploaded, delete the old one
-            if "profile_picture" in request.data and request.user.profile_picture:
-                if os.path.exists(request.user.profile_picture.path):
-                    os.remove(request.user.profile_picture.path)
+        if not request.user.role == Role.RA:
+            return Response({"error": "You are not a Research Assitant!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            ra = ResearchAssistant.objects.get(user=request.user)
+        except ResearchAssistant.DoesNotExist:
+            ra = ResearchAssistant.objects.create(user=request.user)
 
-                request.user.profile_picture.delete(save=True)
+        serializer = ResearchAssistantSerializer(ra, data=request.data, partial=True, context={"request": request})
+
+        if serializer.is_valid():
+            if "interests" in request.data:
+                for interest in request.data["interests"]:
+                    if not Interest.objects.filter(id=interest).exists():
+                        return Response({"error": f"Invalid interest: {interest}!"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    if RAInterests.objects.filter(ra=request.user.id, interest=interest).exists():
+                        return Response({"error": f"Interest {interest} already exists for this RA!"}, status=status.HTTP_400_BAD_REQUEST)
+                    RAInterests.objects.create(ra=ra, interest=Interest.objects.get(id=interest)) # type: ignore
+            
+            # if a new profile picture is uploaded, delete the old one
+            if "profile_picture" in request.data and ra.profile_picture:
+                if os.path.exists(ra.profile_picture.path):
+                    os.remove(ra.profile_picture.path)
+
+                ra.profile_picture.delete(save=True)
 
             # if a new cv is uploaded, delete the old one
-            if "cv" in request.data and request.user.cv:
-                if os.path.exists(request.user.cv.path):
-                    os.remove(request.user.cv.path)
+            if "cv" in request.data and ra.cv:
+                if os.path.exists(ra.cv.path):
+                    os.remove(ra.cv.path)
 
-                request.user.cv.delete(save=True)
-
+                ra.cv.delete(save=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
+            response = serializer.data
+            extended_interests = list()
+            for interest in RAInterests.objects.filter(ra=ra):
+                extended_interests.append(Interest.objects.get(id=interest.interest.id).name) # type: ignore
+            response["interests"] = extended_interests
+            return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-class CreateFacultyView(APIView):
+class RemoveRAInterestView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
-    def post(self, request):
-        if request.user.role != Role.FACULTY:
-            return Response({"error": "You are not a faculty!"}, status=status.HTTP_400_BAD_REQUEST)
+    def delete(self, request, interest_id):
+        if not request.user.role == Role.RA:
+            return Response({"error": "You are not a Research Assitant!"}, status=status.HTTP_403_FORBIDDEN)
         
-        if Faculty.objects.filter(user=request.user).exists():
-            return Response({"error": "You are already a faculty!"}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = FacultySerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            ra = ResearchAssistant.objects.get(user=request.user)
+        except ResearchAssistant.DoesNotExist:
+            return Response({"error": "Research Assistant not found!"}, status=status.HTTP_404_NOT_FOUND)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            interest = Interest.objects.get(id=interest_id)
+        except Interest.DoesNotExist:
+            return Response({"error": "Interest not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not RAInterests.objects.filter(ra=ra, interest=interest).exists():
+            return Response({"error": "Interest does not exist for this RA!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        RAInterests.objects.filter(ra=ra, interest=interest).delete()
+        
+        serializer = ResearchAssistantSerializer(ra, context={"request": request}).data
+        extended_interests = list()
+        interests = RAInterests.objects.filter(ra=ra)
+        for interest in interests:
+            extended_interests.append(Interest.objects.get(id=interest.interest.id).name) # type: ignore
+        serializer["interests"] = extended_interests
+        return Response(serializer, status=status.HTTP_200_OK)
     
 
-class RetrieveFacultyView(APIView):
+class RetrieveResearchAssitantView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
-    def get(self, request):        
-        serializer = FacultySerializer(request.user, context={"request": request})
-        extended_interests = []
-        for interest in serializer.data["interests"]:
-            extended_interests.append(InterestSerializer(interest).data)
-        serializer.data["interests"] = extended_interests
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request):
+        if not request.user.role == Role.RA:
+            return Response({"error": "You are not a Research Assitant!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            ra = ResearchAssistant.objects.get(user=request.user)
+        except ResearchAssistant.DoesNotExist:
+            return Response({"error": "Research Assistant not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ResearchAssistantSerializer(ra, context={"request": request}).data
+        interests = RAInterests.objects.filter(ra=ra)
+        extended_interests = list()
+        for interest in interests:
+            extended_interests.append(Interest.objects.get(id=interest.interest.id).name) # type: ignore
+        serializer["interests"] = extended_interests
+        return Response(serializer, status=status.HTTP_200_OK)
     
 
 class UpdateFacultyView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
     def patch(self, request):
-        serializer = FacultySerializer(request.user, data=request.data, partial=True, context={"request": request})
-        if serializer.is_valid():
-            # if a new profile picture is uploaded, delete the old one
-            if "profile_picture" in request.data and request.user.profile_picture:
-                if os.path.exists(request.user.profile_picture.path):
-                    os.remove(request.user.profile_picture.path)
+        if not request.user.role == Role.FACULTY:
+            return Response({"error": "You are not a Faculty!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            faculty = Faculty.objects.get(user=request.user)
+        except Faculty.DoesNotExist:
+            faculty = Faculty.objects.create(user=request.user)
 
-                request.user.profile_picture.delete(save=True)
+        serializer = FacultySerializer(faculty, data=request.data, partial=True, context={"request": request})
+
+        if serializer.is_valid():
+            if "interests" in request.data:
+                for interest in request.data["interests"]:
+                    if not Interest.objects.filter(id=interest).exists():
+                        return Response({"error": f"Invalid interest: {interest}!"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    if FacultyInterests.objects.filter(faculty=request.user.id, interest=interest).exists():
+                        return Response({"error": f"Interest {interest} already exists for this Faculty!"}, status=status.HTTP_400_BAD_REQUEST)
+                    FacultyInterests.objects.create(faculty=faculty, interest=Interest.objects.get(id=interest)) # type: ignore
+
+            # if a new profile picture is uploaded, delete the old one
+            if "profile_picture" in request.data and faculty.profile_picture:
+                if os.path.exists(faculty.profile_picture.path):
+                    os.remove(faculty.profile_picture.path)
+
+                faculty.profile_picture.delete(save=True)
 
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
+            response = serializer.data
+            extended_interests = list()
+            for interest in FacultyInterests.objects.filter(faculty=faculty):
+                extended_interests.append(Interest.objects.get(id=interest.interest.id).name) # type: ignore
+            response["interests"] = extended_interests
+            return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class RemoveFacultyInterestView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request, interest_id):
+        if not request.user.role == Role.FACULTY:
+            return Response({"error": "You are not a Faculty!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            faculty = Faculty.objects.get(user=request.user)
+        except Faculty.DoesNotExist:
+            return Response({"error": "Faculty not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            interest = Interest.objects.get(id=interest_id)
+        except Interest.DoesNotExist:
+            return Response({"error": "Interest not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not FacultyInterests.objects.filter(faculty=faculty, interest=interest).exists():
+            return Response({"error": "Interest does not exist for this Faculty!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        FacultyInterests.objects.filter(faculty=faculty, interest=interest).delete()
+        
+        serializer = FacultySerializer(faculty, context={"request": request}).data
+        extended_interests = list()
+        interests = FacultyInterests.objects.filter(faculty=faculty)
+        for interest in interests:
+            extended_interests.append(Interest.objects.get(id=interest.interest.id).name) # type: ignore
+        serializer["interests"] = extended_interests
+        return Response(serializer, status=status.HTTP_200_OK)
+    
+
+class RetrieveFacultyView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request):
+        if not request.user.role == Role.FACULTY:
+            return Response({"error": "You are not a Faculty!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            faculty = Faculty.objects.get(user=request.user)
+        except Faculty.DoesNotExist:
+            return Response({"error": "Faculty not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = FacultySerializer(faculty, context={"request": request}).data
+        interests = FacultyInterests.objects.filter(faculty=faculty)
+        extended_interests = list()
+        for interest in interests:
+            extended_interests.append(Interest.objects.get(id=interest.id).name) # type: ignore
+        serializer["interests"] = extended_interests
+        return Response(serializer, status=status.HTTP_200_OK)
