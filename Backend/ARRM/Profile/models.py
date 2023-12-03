@@ -89,6 +89,35 @@ class WritingSample(models.Model):
         return self.title
     
 
+class StudyArea(models.TextChoices):
+    """
+    defines choices for study areas
+    """
+
+    Artificial_Intelligence = "Artificial Intelligence", _("Artificial Intelligence")
+    Algorithm = "Algorithm", _("Algorithm")
+    Computer_Engineering = "Computer Engineering", _("Computer Engineering")
+    Cryptography = "Cryptography", _("Cryptography")
+    Robotics = "Robotics", _("Robotics")
+    Computer_Vision = "Computer Vision", _("Computer Vision")
+    Software_Engineering = "Software Engineering", _("Software Engineering")
+    Computational_Science = "Computational Science", _("Computational Science")
+    Numerical_Analysis = "Numerical Analysis", _("Numerical Analysis")
+    Market_Research = "Market Research", _("Market Research")
+    Financial_Accounting = "Financial Accounting", _("Financial Accounting")
+    International_Trade_Policy = "International Trade & Policy", _("International Trade & Policy")
+    Organisations_Behaviour = "Organisational Behaviour", _("Organisational Behaviour")
+    Managerial_Behaviour = "Managerial Behaviour", _("Managerial Behaviour")
+    Marketing = "Marketing", _("Marketing")
+    Operations_Management = "Operations Management", _("Operations Management")
+    International_Finance = "International Finance", _("International Finance")
+    Supply_Chain_Management = "Supply-Chain Management", _("Supply-Chain Management")
+    Business_Law = "Business Law", _("Business Law")
+    Competitive_Strategy = "Competitive Strategy", _("Competitive Strategy")
+    Corporate_Finance = "Corporate Finance", _("Corporate Finance")
+    Product_Development = "Product Development", _("Product Development")
+    
+
 class Interest(models.Model):
     """
     defines attributes for an interest class
@@ -99,34 +128,10 @@ class Interest(models.Model):
     """
 
     name = models.CharField(max_length=100, unique=True)
-    study_area = models.CharField(max_length=100, unique=True)
+    study_area = models.CharField(max_length=100)
 
     def __str__(self):
         return f"{self.name} : {self.study_area}"
-
-
-class ResearchAssistant(models.Model):
-    """
-    defines attributes for a research assistant class
-
-    Attributes:
-        - user (UserAccount): the user's account
-        - bio (TextField): the user's bio
-        - profile_picture (ImageField): the user's profile picture
-        - interests (ManyToManyField): the user's interests
-        - linkedin_url (CharField): the user's linkedin url
-        - cv (FileField): the user's cv
-    """
-
-    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE, primary_key=True)
-    bio = models.TextField(blank=True, null=True)
-    profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
-    linkedin_url = models.CharField(max_length=250, blank=True, null=True)
-    cv = models.FileField(upload_to=cv_upload_path, blank=True, null=True)
-    interests = models.ManyToManyField(Interest, blank=True)
-
-    def __str__(self):
-        return f"{self.user.firstname} {self.user.lastname} - {self.linkedin_url}"
     
 
 class Department(models.TextChoices):
@@ -140,6 +145,45 @@ class Department(models.TextChoices):
     Business_Administration = "Business Administration", _("Business Administration")
     Computer_Science_Information_Systems = "Computer Science & Information Systems", _("Computer Science & Information Systems")
     Engineering = "Engineering", _("Engineering")
+
+
+class ResearchAssistant(models.Model):
+    """
+    defines attributes for a research assistant class
+
+    Attributes:
+        - user (UserAccount): the user's account
+        - bio (TextField): the user's bio
+        - profile_picture (ImageField): the user's profile picture
+        - interests (ManyToManyField): the user's interests* (normalised to RAInterests)
+        - linkedin_url (CharField): the user's linkedin url
+        - cv (FileField): the user's cv
+    """
+
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE, primary_key=True)
+    bio = models.TextField(blank=True, null=True)
+    profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
+    linkedin_url = models.CharField(max_length=250, blank=True, null=True)
+    cv = models.FileField(upload_to=cv_upload_path, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.firstname} {self.user.lastname}: {self.linkedin_url}"
+
+
+class RAInterests(models.Model):
+    """
+    defines attributes for a RA interests class
+
+    Attributes:
+        - ra (ResearchAssistant): the research assistant
+        - interest (Interest): the research assistant's interest
+    """
+
+    ra = models.ForeignKey(ResearchAssistant, on_delete=models.CASCADE)
+    interest = models.ForeignKey(Interest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.ra.user.firstname} {self.ra.user.lastname}: {self.interest.name}"
     
 
 class Faculty(models.Model):
@@ -151,14 +195,29 @@ class Faculty(models.Model):
         - bio (TextField): the user's bio
         - profile_picture (ImageField): the user's profile picture
         - department (CharField): the user's department
-        - interests (ManyToManyField): the user's interests
+        - interests (ManyToManyField): the user's interests* (normalised to FacultyInterests)
     """
 
     user = models.OneToOneField(UserAccount, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
-    department = models.CharField(max_length=100, choices=Department.choices, blank=True, null=True)
-    interests = models.ManyToManyField(Interest, blank=True)
+    department = models.CharField(max_length=100, choices=Department.choices)
 
     def __str__(self):
-        return f"{self.user.firstname} {self.user.lastname} - {self.department}"
+        return f"{self.user.firstname} {self.user.lastname}: {self.department}"
+    
+
+class FacultyInterests(models.Model):
+    """
+    defines attributes for a faculty interests class
+
+    Attributes:
+        - faculty (Faculty): the faculty
+        - interest (Interest): the faculty's interest
+    """
+
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    interest = models.ForeignKey(Interest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.faculty.user.firstname} {self.faculty.user.lastname}: {self.interest.name}"
