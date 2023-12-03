@@ -177,7 +177,29 @@ class AccountLogoutView(APIView):
         response.delete_cookie("refresh_token")
         response.delete_cookie("access_token")
         return response
+
+
+class DisableAccountView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
     
+    def patch(self, request):
+        """
+        disables the specified user account
+        """
+
+        users = request.data["users"]
+        response = dict()
+        for user in users:
+            try:
+                user = UserAccount.objects.get(id=user)
+                user.is_active = False
+                user.save()
+                response[user.email] = "success"
+            except UserAccount.DoesNotExist:
+                response[user.email] = "failed, user does not exist!"
+
+        return Response(response, status=status.HTTP_200_OK)        
+
 
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]

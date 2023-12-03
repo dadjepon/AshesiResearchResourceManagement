@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (RegisterUsersView, AccountLogin, AccountView, ChangePasswordView,
-                    AccountLogoutView, DeleteAccountView)
+                    AccountLogoutView, DisableAccountView, DeleteAccountView)
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -10,5 +10,6 @@ urlpatterns = [
     path("user/", AccountView.as_view(), name="user-details"),
     path("change_password/<int:pk>/", ChangePasswordView.as_view(), name="change-password"),
     path("logout/", AccountLogoutView.as_view(), name="logout"),
+    path("disable/", DisableAccountView.as_view(), name="disable-account"),
     path("delete/<int:user_id>/", DeleteAccountView.as_view(), name="delete-account")
 ]
