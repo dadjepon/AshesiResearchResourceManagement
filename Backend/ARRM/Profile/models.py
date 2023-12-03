@@ -128,7 +128,7 @@ class Interest(models.Model):
     """
 
     name = models.CharField(max_length=100, unique=True)
-    study_area = models.CharField(max_length=100)
+    study_area = models.CharField(max_length=100, choices=StudyArea.choices)
 
     def __str__(self):
         return f"{self.name} : {self.study_area}"
