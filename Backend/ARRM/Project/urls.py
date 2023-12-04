@@ -5,6 +5,8 @@ from .views import (
     RestoreProjectView, DeleteProjectPermanentlyView,
 
     AddMilestoneView, RetrieveMilestoneView, RetrieveMilestonesView, DeleteMilestoneView,
+
+    AddProjectTaskView,
 )
 
 urlpatterns = [
@@ -24,4 +26,7 @@ urlpatterns = [
     path("milestone/get/<int:milestone_id>/", RetrieveMilestoneView.as_view(), name="retrieve-milestone"),
     path("milestone/get/", RetrieveMilestonesView.as_view(), name="retrieve-milestones"),
     path("milestone/delete/<int:milestone_id>/", DeleteMilestoneView.as_view(), name="delete-milestone"),
+
+    # PROJECT TASK ROUTES
+    path("task/add/<int:project_id>/", AddProjectTaskView.as_view(), name="add-task"),
 ]
