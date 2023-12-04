@@ -108,7 +108,6 @@ class ProjectMilestone(models.Model):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     milestone = models.ForeignKey(Milestone, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
 
     def __str__(self):
         return f"{self.project.title} -> {self.milestone.name}"
@@ -138,3 +137,23 @@ class ProjectTask(models.Model):
     
     def __str__(self):
         return f"{self.project_milestone.project.title} : {self.project_milestone.milestone.name} - {self.name}"
+
+
+class ProjectTaskFeedback(models.Model):
+    """
+    defines attributes for a ProjectTaskFeedback class
+
+    Attributes:
+        - project_task (ProjectTask): the project task
+        - target_ra (UserAccount): the RA who is being reviewed
+        - feedback (TextField): the task's feedback
+        - created_at (DateTimeField): the task's creation date
+    """
+
+    project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
+    target_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    feedback = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.project_task.name} : {self.target_ra.email} - {self.project_task.name}"
