@@ -47,25 +47,15 @@ class ProjectSerializer(serializers.ModelSerializer):
         if not "description" in attrs.keys() or not "start_date" in attrs.keys() or not "end_date" in attrs.keys():
             attrs["visibility"] = "private"
 
-        if "study_areas" in attrs.keys():
-            for study_area in attrs["study_areas"]:
-                if study_area not in StudyArea.values:
-                    raise serializers.ValidationError("Invalid study area!")
+        if "end_date" in attrs.keys() and "start_date" in attrs.keys():
+            if attrs["end_date"] < attrs["start_date"]:
+                raise serializers.ValidationError("End date must be greater than start date!")
 
         attrs["user"] = self.context["request"].user
         return attrs
     
     def create(self, validated_data):
-        project = Project(
-            user=validated_data["user"],
-            title=validated_data["title"],
-            description=validated_data["description"],
-            status=validated_data["status"],
-            start_date=validated_data["start_date"],
-            end_date=validated_data["end_date"],
-            visibility=validated_data["visibility"]
-        )
-        
+        project = super().create(validated_data)        
         project.save()
         
         if "study_areas" in validated_data.keys():
@@ -79,13 +69,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         return project
     
     def update(self, instance, validated_data):
-        instance.title = validated_data["title"]
-        instance.description = validated_data["description"]
-        instance.status = validated_data["status"]
-        instance.start_date = validated_data["start_date"]
-        instance.end_date = validated_data["end_date"]
-        instance.visibility = validated_data["visibility"]
-        instance.save()
+        instance = super().update(instance, validated_data)
         
         if "study_areas" in validated_data.keys():
             project_study_areas = ProjectStudyArea.objects.filter(project=instance)
@@ -102,6 +86,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
         representation["study_areas"] = []
         project_study_areas = ProjectStudyArea.objects.filter(project=instance)
         for project_study_area in project_study_areas:
