@@ -193,8 +193,8 @@ class DeleteProjectPermanentlyView(APIView):
         
         if not project.is_deleted: # type: ignore
             return Response({"error": f"{project.title} is not in the trash!"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if project.user != request.user or not request.user.is_staff:
+        print(request.user == project.user, request.user.is_staff)
+        if project.user != request.user:
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
 
         project.delete()
