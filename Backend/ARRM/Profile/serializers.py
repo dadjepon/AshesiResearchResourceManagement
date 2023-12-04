@@ -161,6 +161,16 @@ class ResearchAssistantSerializer(serializers.ModelSerializer):
         attrs["user"] = user
         return attrs
     
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
+        extended_interests = []
+        interests = RAInterests.objects.filter(ra=instance.user.id)
+        for interest in interests:
+            extended_interests.append(interest.interest.name)
+        representation["interests"] = extended_interests
+        return representation
+    
 
 class FacultySerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField("get_user")
@@ -187,3 +197,13 @@ class FacultySerializer(serializers.ModelSerializer):
         user = UserAccount.objects.filter(id=self.context["request"].user.id).first()
         attrs["user"] = user
         return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
+        extended_interests = []
+        interests = FacultyInterests.objects.filter(faculty=instance.user.id)
+        for interest in interests:
+            extended_interests.append(interest.interest.name)
+        representation["interests"] = extended_interests
+        return representation
