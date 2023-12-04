@@ -80,3 +80,61 @@ class Milestone(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class ProjectMilestoneTemplate(models.TextChoices):
+    """
+    defines choices for project milestone templates
+    E.g. standard, project planning, literature review, data collection and processing etc.
+    """
+    
+    STANDARD = "standard", _("Standard")
+    PROJECT_PLANNING = "project_planning", _("Project Planning")
+    LITERATURE_REVIEW = "literature_review", _("Literature Review")
+    DATA_COLLECTION_AND_PROCESSING = "data_collection_and_processing", _("Data Collection and Processing")
+    DISSEMINATION = "dissemination", _("Dissemination")
+
+
+class ProjectMilestone(models.Model):
+    """
+    defines attributes for a ProjectMilestone class
+
+    Attributes:
+        - project (Project): the project
+        - milestone (Milestone): the milestone
+        - status (CharField): the milestone's status
+        - due_date (DateField): the milestone's due date
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    milestone = models.ForeignKey(Milestone, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.milestone.name}"
+    
+
+class ProjectTask(models.Model):
+    """
+    defines attributes for a ProjectTask class
+
+    Attributes:
+        - project_milestone (ProjectMilestone): the project milestone
+        - assigned_ra (UserAccount): the RA assigned to the task
+        - name (CharField): the task's name
+        - description (TextField): the task's description
+        - status (CharField): the task's status
+        - hours_required (IntegerField): the number of hours required to complete the task
+        - due_date (DateField): the task's due date
+    """
+    
+    project_milestone = models.ForeignKey(ProjectMilestone, on_delete=models.CASCADE)
+    assigned_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
+    hours_required = models.IntegerField(blank=True, null=True)
+    due_date = models.DateField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.project_milestone.project.title} : {self.project_milestone.milestone.name} - {self.name}"
