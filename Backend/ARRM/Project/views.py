@@ -1,11 +1,16 @@
-from functools import partial
+from ast import Add
+from re import A
+import re
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from .models import (Project, ProjectStudyArea, Milestone)
-from .serializers import (ProjectSerializer, MilestoneSerializer)
+from .models import (Project, ProjectStudyArea, Milestone, ProjectMilestoneTemplate, 
+                     ProjectMilestone, ProjectTask)
+from .serializers import (ProjectSerializer, MilestoneSerializer, ProjectMilestoneSerializer, 
+                          ProjectTaskSerializer)
+from .helper import MILESTONE_DICT, PROJECT_MILESTONE_TEMPLATE_DICT
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role
 from Profile.models import StudyArea
@@ -247,3 +252,86 @@ class DeleteMilestoneView(APIView):
         
         milestone.delete()
         return Response({"success": "Milestone deleted successfully!"}, status=status.HTTP_200_OK)
+    
+
+class AddProjectTaskView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request, project_id):
+        if request.user.role != Role.FACULTY:
+            return Response({"error": "You do not have permission to perform this action!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+
+        if "template" in request.data:
+            tasks_dict = AddProjectTaskView.get_tasks_dict_from_template(project, request)
+        elif "tasks" in request.data:
+            tasks_dict = request.data["tasks"]
+        else:
+            return Response({"error": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        for milestone, tasks in tasks_dict.items():
+            # create project milestone
+            project_milestone = AddProjectTaskView.create_project_milestone(project, MILESTONE_DICT[milestone])
+            if project_milestone is not None:
+                # create project tasks
+                for task in tasks:
+                    AddProjectTaskView.create_project_task(project_milestone, task)
+        
+        representation = ProjectSerializer(project, context={"request": request}).to_representation(project)
+        return Response(representation, status=status.HTTP_201_CREATED)
+    
+    @staticmethod
+    def get_tasks_dict_from_template(project, request):
+        # ensure no task has been added to the project, this is possible since 
+        # a milestone will only exist if there is at least 1 task for it
+        
+        # if ProjectMilestone.objects.filter(project=project).exists():
+        #     return Response({"error": "You cannot add a template to a project that has tasks!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # create the project tasks based on the template
+        template = request.data["template"]
+        tasks_dict = AddProjectTaskView.get_tasks_dict(template)
+        return tasks_dict
+
+    @staticmethod
+    def get_tasks_dict(template):            
+        if len(template) == 1 and template[0] == ProjectMilestoneTemplate.STANDARD:
+            tasks_dict = PROJECT_MILESTONE_TEMPLATE_DICT
+        else:
+            tasks_dict = dict()
+            for key in template:
+                if key in ProjectMilestoneTemplate.values:
+                    tasks_dict[key] = PROJECT_MILESTONE_TEMPLATE_DICT[key]
+
+        return tasks_dict
+    
+    @staticmethod
+    def create_project_milestone(project, milestone):
+        try:
+            milestone = Milestone.objects.get(name=milestone)
+        except Milestone.DoesNotExist:
+            return None
+
+        if not ProjectMilestone.objects.filter(project=project, milestone=milestone).exists():
+
+            project_milestone = ProjectMilestone(
+                project=project,
+                milestone=milestone
+            )
+            project_milestone.save()
+            return project_milestone
+
+        return ProjectMilestone.objects.get(project=project, milestone=milestone)
+    
+    @staticmethod
+    def create_project_task(project_milestone, task):
+        if not ProjectTask.objects.filter(project_milestone=project_milestone, name=task).exists():
+            project_task = ProjectTask(
+                project_milestone=project_milestone,
+                name=task
+            )
+            project_task.save()        
