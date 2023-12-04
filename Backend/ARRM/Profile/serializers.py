@@ -179,14 +179,7 @@ class FacultySerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        if "interests" in attrs.keys():
-            for interest in attrs["interests"]:
-                if not Interest.objects.filter(id=interest.id).exists():
-                    raise serializers.ValidationError(f"Invalid interest: {interest}!")
-                
-                if FacultyInterests.objects.filter(faculty=self.context["request"].user.id, interest=interest).exists():
-                    raise serializers.ValidationError(f"Interest {interest} already exists for this faculty!")
-            
+                    
         if "profile_picture" in attrs.keys():
             if os.path.splitext(attrs["profile_picture"].name)[1] not in [".png", ".jpg", ".jpeg"]:
                 raise serializers.ValidationError("Profile picture must be an image!")
