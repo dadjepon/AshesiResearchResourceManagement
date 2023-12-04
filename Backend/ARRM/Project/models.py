@@ -13,6 +13,9 @@ class ProjectStatus(models.TextChoices):
 
     PENDING = "pending", _("Pending")
     IN_PROGRESS = "in_progress", _("In Progress")
+    TODO = "todo", _("To Do")
+    IN_REVIEW = "in_review", _("In Review")
+    DONE = "done", _("Done")
     COMPLETED = "completed", _("Completed")
     ANULLED = "anulled", _("Anulled")
 
@@ -45,6 +48,9 @@ class Project(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.title} -> {self.user.email}"
+
 
 class ProjectStudyArea(models.Model):
     """
@@ -57,3 +63,20 @@ class ProjectStudyArea(models.Model):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     study_area = models.CharField(max_length=100, choices=StudyArea.choices)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.study_area}"
+
+
+class Milestone(models.Model):
+    """
+    defines attributes for a Milestone class
+
+    Attributes:
+        - name (CharField): the milestone's name
+    """
+
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name

@@ -1,7 +1,7 @@
 import re
 from rest_framework import serializers
 from .models import (
-    ProjectStatus, Project, ProjectStudyArea
+    ProjectStatus, Project, ProjectStudyArea, Milestone,
 )
 from Profile.models import StudyArea
 
@@ -93,3 +93,22 @@ class ProjectSerializer(serializers.ModelSerializer):
             representation["study_areas"].append(project_study_area.study_area)
         
         return representation
+    
+
+class MilestoneSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Milestone
+        fields = ["id", "name"]
+    
+    def validate_name(self, value):
+        if len(value) > 100:
+            raise serializers.ValidationError("Name must not exceed 100 characters!")
+        
+        if not re.match(r"^[a-zA-Z0-9 ]+$", value):
+            raise serializers.ValidationError("Name must only contain alphanumeric characters!")
+        
+        if Milestone.objects.filter(name=value).exists():
+            raise serializers.ValidationError(f"The milestone {value}, already exists!")
+
+        return value

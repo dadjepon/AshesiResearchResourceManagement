@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from .models import Project, ProjectStudyArea
-from .serializers import ProjectSerializer
+from .models import (Project, ProjectStudyArea, Milestone)
+from .serializers import (ProjectSerializer, MilestoneSerializer)
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role
 from Profile.models import StudyArea
@@ -199,3 +199,51 @@ class DeleteProjectPermanentlyView(APIView):
 
         project.delete()
         return Response({"success": "Project deleted permanently"}, status=status.HTTP_200_OK)
+    
+
+class AddMilestoneView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+
+    def post(self, request):
+        serializer = MilestoneSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class RetrieveMilestoneView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, milestone_id):
+        try:
+            milestone = Milestone.objects.get(id=milestone_id)
+        except Milestone.DoesNotExist:
+            return Response({"error": "Milestone not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = MilestoneSerializer(milestone)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class RetrieveMilestonesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+    serializer_class = MilestoneSerializer
+    queryset = Milestone.objects.all()
+    filterset_fields = ["name"]
+    
+    def get_queryset(self):
+        return Milestone.objects.filter()
+    
+
+class DeleteMilestoneView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+
+    def delete(self, request, milestone_id):
+        try:
+            milestone = Milestone.objects.get(id=milestone_id)
+        except Milestone.DoesNotExist:
+            return Response({"error": "Milestone not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        milestone.delete()
+        return Response({"success": "Milestone deleted successfully!"}, status=status.HTTP_200_OK)
