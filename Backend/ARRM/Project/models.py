@@ -42,6 +42,7 @@ class Project(models.Model):
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
     visibility = models.CharField(max_length=20, default="private", choices=[("public", "public"), ("private", "private")])
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
