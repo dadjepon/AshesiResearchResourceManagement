@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'Account',
     'Profile',
     'Miscelleneous',
+    'Project',
 ]
 
 MIDDLEWARE = [
