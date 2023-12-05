@@ -225,7 +225,7 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
 
             if current_datetime + timedelta(hours=attrs["hours_required"]) > due_datetime:
                 raise serializers.ValidationError("Due date must be greater than current date plus hours required!")
-        
+        task
         return attrs
     
     def update(self, instance, validated_data):
