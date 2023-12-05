@@ -1,6 +1,3 @@
-from ast import Add
-from re import A
-import re
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -400,3 +397,70 @@ class DeleteProjectMilestoneView(APIView):
         
         project_milestone.delete()
         return Response({"success": "Project milestone deleted successfully!"}, status=status.HTTP_200_OK)
+
+
+class RetrieveTaskView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, task_id):
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ProjectTaskSerializer(project_task, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class RetrievePendingTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+    serializer_class = ProjectTaskSerializer
+    queryset = ProjectTask.objects.all()
+    filterset_fields = ["name", "status", "due_date", "project_milestone", "assigned_ra"]
+    
+    def get_queryset(self):
+        return ProjectTask.objects.filter(project_milestone__project__user=self.request.user, status=ProjectStatus.TODO)
+    
+
+class UpdateTaskView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def patch(self, request, task_id):
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != project_task.project_milestone.project.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = ProjectTaskSerializer(project_task, data=request.data, partial=True, context={"request": request})
+        if serializer.is_valid():
+            if project_task.assigned_ra is None:
+                if "assigned_ra" not in request.data.keys():
+                    serializer.validated_data["status"] = ProjectStatus.TODO # type: ignore
+
+            serializer.save()
+            response = serializer.to_representation(project_task)
+            return Response(response, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteProjectTaskView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request, task_id):
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != project_task.project_milestone.project.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        if project_task.status == ProjectStatus.DONE:
+            return Response({"error": "You cannot delete a completed task!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        project_task.delete()
+        return Response({"success": "Project task deleted successfully!"}, status=status.HTTP_200_OK)
