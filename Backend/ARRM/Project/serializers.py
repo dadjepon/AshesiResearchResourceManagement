@@ -99,7 +99,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
         representation["milestones"] = []
         for project_milestone in ProjectMilestone.objects.filter(project=instance):
-            tasks = self.get_milestone_tasks(project_milestone)
+            tasks = ProjectSerializer.get_milestone_tasks(project_milestone)
             milestone = {
                 "id": project_milestone.id,  # type: ignore
                 "milestone_name": project_milestone.milestone.name,
@@ -110,7 +110,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         
         return representation
     
-    def get_milestone_tasks(self, milestone):
+    @staticmethod
+    def get_milestone_tasks(milestone):
         tasks = []
         for project_task in ProjectTask.objects.filter(project_milestone=milestone):
             task = {
@@ -169,6 +170,15 @@ class ProjectMilestoneSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid project status!")
         
         return value
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project"] = instance.project.title
+        representation["id"] = instance.id
+        representation["milestone"] = instance.milestone.name
+        tasks = ProjectSerializer.get_milestone_tasks(instance)
+        representation["tasks"] = tasks
+        return representation
     
 
 class ProjectTaskSerializer(serializers.ModelSerializer):
