@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from .models import (Project, ProjectStudyArea, Milestone, ProjectMilestoneTemplate, 
+from .models import (Project, ProjectStatus, ProjectStudyArea, Milestone, ProjectMilestoneTemplate, 
                      ProjectMilestone, ProjectTask)
 from .serializers import (ProjectSerializer, MilestoneSerializer, ProjectMilestoneSerializer, 
                           ProjectTaskSerializer)
@@ -287,7 +287,7 @@ class AddProjectTaskView(APIView):
     @staticmethod
     def get_tasks_dict_from_template(project, request):
         # ensure no task has been added to the project, this is possible since 
-        # a milestone will only exist if there is at least 1 task for it
+        # a milestone will only exist if there is at least 1 task for it [SCRATCHED]
         
         # if ProjectMilestone.objects.filter(project=project).exists():
         #     return Response({"error": "You cannot add a template to a project that has tasks!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -334,4 +334,69 @@ class AddProjectTaskView(APIView):
                 project_milestone=project_milestone,
                 name=task
             )
-            project_task.save()        
+            project_task.save()
+
+
+class RetrieveProjectMilestoneView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, project_milestone_id):
+        try:
+            project_milestone = ProjectMilestone.objects.get(id=project_milestone_id)
+        except ProjectMilestone.DoesNotExist:
+            return Response({"error": "Project milestone not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ProjectMilestoneSerializer(project_milestone, context={"request": request})
+        response = serializer.to_representation(project_milestone)
+        return Response(response, status=status.HTTP_200_OK)
+    
+
+class RemoveProjectTaskFromMilestoneView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request):
+        task_id = request.data.get("task_id")
+        milestone_id = request.data.get("milestone_id")
+
+        try:
+            project_milestone = ProjectMilestone.objects.get(id=milestone_id)
+        except ProjectMilestone.DoesNotExist:
+            return Response({"error": "Project milestone not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if project_milestone.project.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if project_task.project_milestone != project_milestone:
+            return Response({"error": "Project task does not belong to this milestone!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if project_task.status == ProjectStatus.DONE:
+            return Response({"error": "You cannot remove a completed task!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        project_task.delete()
+        response = ProjectMilestoneSerializer(project_milestone, context={"request": request}).to_representation(project_milestone)
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class DeleteProjectMilestoneView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request, project_milestone_id):
+        try:
+            project_milestone = ProjectMilestone.objects.get(id=project_milestone_id)
+        except ProjectMilestone.DoesNotExist:
+            return Response({"error": "Project milestone not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != project_milestone.project.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # don't allow delete if there are completed tasks under the milestone
+        if ProjectTask.objects.filter(project_milestone=project_milestone, status=ProjectStatus.DONE).exists():
+            return Response({"error": "You cannot delete a milestone that has completed tasks!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        project_milestone.delete()
+        return Response({"success": "Project milestone deleted successfully!"}, status=status.HTTP_200_OK)
