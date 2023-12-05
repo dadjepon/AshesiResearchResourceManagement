@@ -8,7 +8,7 @@ from .views import (
 
     RetrieveProjectMilestoneView, RemoveProjectTaskFromMilestoneView, DeleteProjectMilestoneView,
 
-    AddProjectTaskView,
+    AddProjectTaskView, RetrieveTaskView, RetrievePendingTasksView, UpdateTaskView, DeleteProjectTaskView,
 )
 
 urlpatterns = [
@@ -35,4 +35,8 @@ urlpatterns = [
     path("project_milestone/delete/<int:project_milestone_id>/", DeleteProjectMilestoneView.as_view(), name="delete-project-milestone"),
     
     path("task/add/<int:project_id>/", AddProjectTaskView.as_view(), name="add-task"),
+    path("task/get/<int:task_id>/", RetrieveTaskView.as_view(), name="retrieve-task"),
+    path("task/get/pending/", RetrievePendingTasksView.as_view(), name="retrieve-pending-tasks"),
+    path("task/update/<int:task_id>/", UpdateTaskView.as_view(), name="update-task"),
+    path("task/delete/<int:task_id>/", DeleteProjectTaskView.as_view(), name="delete-task"),
 ]
