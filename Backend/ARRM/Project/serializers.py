@@ -114,15 +114,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_milestone_tasks(milestone):
         tasks = []
         for project_task in ProjectTask.objects.filter(project_milestone=milestone):
-            task = {
-                "id": project_task.id, # type: ignore
-                "name": project_task.name,
-                "description": project_task.description,
-                "status": project_task.status,
-                "hours_required": project_task.hours_required,
-                "due_date": project_task.due_date,
-                "assigned_ra": project_task.assigned_ra.email if project_task.assigned_ra else None
-            }
+            task = ProjectTaskSerializer(project_task).data
+            task["assigned_ra"] = project_task.assigned_ra.email if project_task.assigned_ra else None
             tasks.append(task)
         
         return tasks
@@ -213,10 +206,34 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
         
         return value
     
+    def validate_due_date(self, value):
+        try:
+            value.strftime("%Y-%m-%d")
+        except ValueError:
+            raise serializers.ValidationError("Incorrect date format, should be YYYY-MM-DD")
+        
+        if value < datetime.now().date():
+            raise serializers.ValidationError("Due date must be greater than current date!")
+        
+        return value
+    
     def validate(self, attrs):
         # ensure that current date plus hours required is less than due date
         if "due_date" in attrs.keys() and "hours_required" in attrs.keys():
-            if datetime.now() + timedelta(hours=attrs["hours_required"]) > attrs["due_date"]:
+            current_datetime = datetime.now()
+            due_datetime = datetime.combine(attrs["due_date"], current_datetime.time())
+
+            if current_datetime + timedelta(hours=attrs["hours_required"]) > due_datetime:
                 raise serializers.ValidationError("Due date must be greater than current date plus hours required!")
-            
+        
         return attrs
+    
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project"] = instance.project_milestone.project.title
+        representation["project_milestone"] = instance.project_milestone.milestone.name
+        representation["assigned_ra"] = instance.assigned_ra.email if instance.assigned_ra else None
+        return representation
