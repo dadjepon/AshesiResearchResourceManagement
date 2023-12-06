@@ -68,6 +68,54 @@ class ProjectStudyArea(models.Model):
         return f"{self.project.title} -> {self.study_area}"
 
 
+class ProjectTeam(models.Model):
+    """
+    defines attributes for a ProjectTeam class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the user account of the team member
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email}"
+
+
+class ProjectTeamRequest(models.Model):
+    """
+    defines attributes for a ProjectTeamRequest class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the requesting user's account
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email}"
+    
+
+class ProjectTeamInvitation(models.Model):
+    """
+    defines attributes for a ProjectTeamInvitation class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the invited user's account
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email}"
+
+
 class Milestone(models.Model):
     """
     defines attributes for a Milestone class
@@ -151,6 +199,7 @@ class ProjectTaskFeedback(models.Model):
     """
 
     project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
+    # don't need target_ra since project_task has an assigned ra
     target_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
