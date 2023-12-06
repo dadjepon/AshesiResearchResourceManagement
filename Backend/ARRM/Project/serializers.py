@@ -3,8 +3,8 @@ from rest_framework import serializers
 from datetime import datetime, timedelta
 
 from .models import (
-    ProjectStatus, Project, ProjectStudyArea, Milestone, ProjectMilestone,
-    ProjectTask,
+    ProjectStatus, Project, ProjectStudyArea, ProjectTeam, ProjectTeamRequest,
+    ProjectTeamInvitation, Milestone, ProjectMilestone, ProjectTask, ProjectTaskFeedback,
 )
 from Profile.models import StudyArea
 from Account.models import Role, UserAccount
@@ -121,6 +121,51 @@ class ProjectSerializer(serializers.ModelSerializer):
         return tasks
     
 
+class ProjectTeamSerializer(serializers.ModelSerializer):
+    project = serializers.SerializerMethodField("get_project")
+    user = serializers.SerializerMethodField("get_user")
+
+    class Meta:
+        model = ProjectTeam
+        fields = ["id", "project", "user"]
+
+    def get_project(self, obj):
+        return obj.project.title
+    
+    def get_user(self, obj):
+        return obj.user.email
+
+
+class ProjectTeamRequestSerializer(serializers.ModelSerializer):
+    project = serializers.SerializerMethodField("get_project")
+    user = serializers.SerializerMethodField("get_user")
+
+    class Meta:
+        model = ProjectTeamRequest
+        fields = ["id", "project", "user"]
+
+    def get_project(self, obj):
+        return obj.project.title
+    
+    def get_user(self, obj):
+        return obj.user.email
+
+
+class ProjectTeamInvitationSerializer(serializers.ModelSerializer):
+    project = serializers.SerializerMethodField("get_project")
+    user = serializers.SerializerMethodField("get_user")
+
+    class Meta:
+        model = ProjectTeamInvitation
+        fields = ["id", "project", "user"]
+ 
+    def get_project(self, obj):
+        return obj.project.title
+    
+    def get_user(self, obj):
+        return obj.user.email
+
+
 class MilestoneSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -183,9 +228,8 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
     
     def validate_assigned_ra(self, value):
         if not UserAccount.objects.filter(id=value.id, role=Role.RA).exists():
-            raise serializers.ValidationError("Invalid RA!")
+            raise serializers.ValidationError(f"{value.email} is not an RA!")
         
-        # if ra is not part of project team, don't allow
         return value
     
     def validate_name(self, value):
@@ -237,3 +281,30 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
         representation["project_milestone"] = instance.project_milestone.milestone.name
         representation["assigned_ra"] = instance.assigned_ra.email if instance.assigned_ra else None
         return representation
+    
+
+class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProjectTaskFeedback
+        fields = ["id", "project_task", "target_ra", "feedback", "created_at"]
+
+    def validate_project_task(self, value):
+        if not ProjectTask.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project task!")
+        
+        return value
+    
+    def validate_target_ra(self, value):
+        if not UserAccount.objects.filter(id=value.id, role=Role.RA).exists():
+            raise serializers.ValidationError(f"{value.email} is not an RA!")
+        
+        return value
+    
+    def validate(self, attrs):
+        # ensure that the targeted RA is assigned to the project task
+        if "project_task" in attrs.keys() and "target_ra" in attrs.keys():
+            if attrs["project_task"].assigned_ra != attrs["target_ra"]:
+                raise serializers.ValidationError("Target RA is not assigned to this project task!")
+            
+        return attrs   
