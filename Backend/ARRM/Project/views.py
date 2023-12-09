@@ -1,3 +1,4 @@
+from pickletools import read_uint1
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -313,9 +314,6 @@ class InviteResearchAssistantView(APIView):
         except UserAccount.DoesNotExist:
             return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
         
-        if user.role != Role.RA:
-            return Response({"error": "You can only invite research assistants!"}, status=status.HTTP_400_BAD_REQUEST)
-        
         if ProjectTeam.objects.filter(project=project, user=user).exists():
             return Response({"error": f"{user.email} is already a member of the '{project.title}' project!"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -411,7 +409,7 @@ class RetrieveProjectTeamMembersView(generics.ListAPIView):
         except Project.DoesNotExist:
             return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
 
-        if project.user != request.user:
+        if project.user != request.user or not ProjectTeam.objects.filter(project=project, user=request.user).exists():
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
 
         project_team_members = ProjectTeam.objects.filter(project=project)
@@ -453,7 +451,7 @@ class DeleteProjectPermanentlyView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
 
         project.delete()
-        return Response({"success": "Project deleted permanently"}, status=status.HTTP_200_OK)
+        return Response({"success": "Project deleted permanently!"}, status=status.HTTP_200_OK)
     
 
 class AddMilestoneView(APIView):
@@ -690,24 +688,21 @@ class UpdateTaskView(APIView):
         serializer = ProjectTaskSerializer(project_task, data=request.data, partial=True, context={"request": request})
         if serializer.is_valid():
             # if a task does not have an assigned RA, ensure that the status is TODO
-            if project_task.assigned_ra is None:
-                if "assigned_ra" not in request.data.keys():
+            if project_task.assignee is None:
+                if "assignee" not in request.data.keys():
                     serializer.validated_data["status"] = ProjectStatus.TODO # type: ignore
                 
             # ensure the assigned RA is not the project owner and is a project team member
-            if "assigned_ra" in request.data.keys():
+            if "assignee" in request.data.keys():
                 try:
-                    user = UserAccount.objects.get(id=request.data["assigned_ra"])
+                    user = UserAccount.objects.get(id=request.data["assignee"])
                 except UserAccount.DoesNotExist:
                     return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
-                
-                if user == project_task.project_milestone.project.user:
-                    return Response({"error": "You cannot assign yourself to a task!"}, status=status.HTTP_400_BAD_REQUEST)
                 
                 if not ProjectTeam.objects.filter(project=project_task.project_milestone.project, user=user).exists():
                     Response({"error": f"{user.firstname} {user.lastname} is not a member of the project!"}, status=status.HTTP_400_BAD_REQUEST)
 
-                serializer.validated_data["assigned_ra"] = user # type: ignore
+                serializer.validated_data["assignee"] = user # type: ignore
 
             serializer.save()
             response = serializer.to_representation(project_task)
