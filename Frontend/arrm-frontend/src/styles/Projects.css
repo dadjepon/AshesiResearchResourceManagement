@@ -1,0 +1,116 @@
+.recent-work, .pending-task h4{
+    color: var(--primary-color);
+  }
+  
+  .recent-work,
+  .pending-task {
+    display: flex;
+   flex-direction: column;
+  }
+  
+  .project-container {
+    
+    flex-wrap: wrap;
+     
+    display: flex;
+    align-items: flex-start;
+    height: auto;
+  }
+  
+  .project-task {
+    border: .02em solid #d8c6c6;
+    border-radius: 8px;
+    height: 300px;
+    padding-bottom: 0px ;
+    padding-top: 0px ;
+    margin: 20px;
+    width:280px; 
+    height: 230px;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    color:var(--primary-color);
+    box-shadow: 4px 2px 4px rgba(0, 0.1, 0.1, 0.1);
+  
+  }
+  
+  
+  .project-task h2 {
+    font-size: var(--large-font-size);
+    font-weight: bolder;
+    margin-bottom: 5px;
+    
+  }
+  
+  .value{
+    color: var(--default-light-color);
+    padding: 0px;
+    margin: 0px;
+    align-self: flex-end;
+  }
+  
+  
+  
+  .group {
+    display: flex;    
+    align-items: flex-end; 
+  }
+  
+  .group img {
+    margin-right: 1px; 
+  }
+  
+  
+  .project-task h3 {
+    font-size: var(--medium-font-size);
+    font-weight: 600;
+    margin-bottom: 0px;
+    padding: 0px;
+  }
+  
+  .project-task p {
+    font-size:var(--main-font-size);
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 7px;
+    font-weight: 300;
+    color: var(--default-light-color);
+  }
+  .view-btn{
+    margin-top: auto;
+  }
+  
+  .view-btn button{
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    font-size: var(--medium-font-size);
+    height: 50px;
+    margin-top: auto;
+    width: 100%;
+    align-self: flex-end;
+  }
+
+  .view-btn  button:hover{
+    background-color: #923d41;
+  }
+
+  
+  @media (max-width: 768px) {
+    .project-task {
+      width: 100%;
+    }
+  }
+  
+  
+  .project-task .component {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0px;
+    padding: 0px;
+    padding-left: 20px;
+    padding-right: 20px;
+  } 

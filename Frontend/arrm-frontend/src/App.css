@@ -1,0 +1,47 @@
+:root {
+  --primary-color: #923D41;
+  --light-color: #9E4448;
+  --very-light-color: #9E5C5F;
+  --dark-color: #803B3E;
+  --default-lighter-color: #ececec;
+  --default-light-color: #383838;
+  --large-font-size: 20px;
+  --medium-font-size:13px;
+  --main-font-size:  10px;
+  --semi-medium-font-size: 16px;
+
+}
+
+.App {
+  height: 100vh;
+
+  display: flex;
+  flex-direction: row;
+}
+
+.home-wrapper{
+  display: flex;
+  align-items: start;
+  
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+#Sidebar {
+  height: 100%;
+  flex-grow: 0; 
+}
+
+#MainContent {
+  flex-grow: 1; 
+  padding: 20px 0 20px 20px;
+  margin-right: 0px;
+  background-color: #f0f0f0;
+  min-width: 150vh; 
+}
+
+
