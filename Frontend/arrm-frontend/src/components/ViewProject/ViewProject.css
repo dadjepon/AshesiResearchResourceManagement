@@ -1,0 +1,111 @@
+.non-expanding {
+  min-height: 100vh;
+  width: 100%;
+  position: fixed;
+  z-index: 0;
+}
+
+/* ... (existing styles) */
+
+.upper-container {
+  height: 60vh;
+  overflow: hidden;
+  position: relative; /* Position relative for absolute positioning of title */
+}
+
+.proj-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.view-project-title {
+  font-size: 36px; /* Increase font size for better visibility */
+  margin-bottom: 10px;
+  color: #ffffff;
+  position: absolute;
+  bottom: 20px; /* Adjust the distance from the bottom as needed */
+  left: 20px; /* Adjust the distance from the left as needed */
+  z-index: 2; /* Ensure the title is above the image */
+}
+
+.view-project-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border-radius: 3px;
+  background-color: #fff;
+  box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.1);
+  margin-left: 0px;
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.view-project-details {
+  margin: 10px;
+  padding: 20px;
+  background-color: white;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 0.1px solid #00000036;
+  background: #FFF;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+   z-index: 1;
+   font-size: var(--medium-font-size);
+   color: var(  --default-light-color);
+}
+
+.detail{
+display: flex;
+flex-direction: column;
+}
+
+.detail-values{
+  
+}
+
+.view-project-descr{
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: 200;
+}
+
+.view-project-label {
+  font-weight: bold;
+  margin-right: 5px;
+  color: var(--primary-color); 
+}
+
+.view-all-link {
+  color: blue;
+  cursor: pointer;
+  text-decoration: underline; /* Add underline to the view all link */
+}
+
+.tasks-section {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-item {
+  margin-bottom: 5px;
+}
+
+.task-name {
+  color: blue;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.task-details {
+  margin-left: 20px;
+  background-color: #f5f5f5;
+  padding: 10px; /* Increase padding for better readability */
+  border-radius: 5px;
+}
+

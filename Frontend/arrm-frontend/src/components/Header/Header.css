@@ -1,0 +1,51 @@
+
+.header {
+    position: fixed;
+   
+    width: 100%;
+    height: 9vh;
+    background-color: #dad6d6a6;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1; 
+  }
+
+  .header .title-components{
+    display: flex;
+    align-items: center;
+  }
+  
+  .title-components .title {
+    margin-left: 0px;
+    color: var(--default-light-color);
+    font-weight: 700;
+  }
+
+  .title-components .vertical-bar{
+    width: 1px;
+    height: 4vh;
+    margin-left: 250px;
+    margin-right: 10px;
+    color: var(--default-light-color);
+    font-weight: 400;
+    background-color: rgb(102, 102, 102);
+  }
+  
+  .browse-projects-btn {
+    
+    color: var(--primary-color);
+    padding: 5px 5px;
+    border: 1.5px solid var(--primary-color);
+    box-shadow: 4px 4px 4px rgba(0, 0.1, 0.1, 0.1);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: var(--medium-font-size);
+    margin-right: 50px;
+    
+  }
+
+  
+ 
