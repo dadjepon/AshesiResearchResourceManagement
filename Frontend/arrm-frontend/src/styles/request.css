@@ -1,0 +1,143 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+
+.container {
+  position: absolute;
+  width: 800px;
+  height: 650px;
+  left: 50%; /* Adjust horizontal position as needed */
+  top: 50%; /* Adjust vertical position as needed */
+  transform: translate(-50%, -50%);
+  background: #D9D9D9;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  /* Add any other styles you need for the container */
+
+
+
+ /* Flexbox styles for centering content */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content from the top */
+  align-items: center; /* Center items horizontally */
+
+}
+.image-container {
+  position: absolute;
+  width: 150px; /* Set the width as needed */
+  height: 147.12px; /* Set the height as needed */
+  left: calc(40% + 1px); /* Adjust left positioning to shift the logo right */
+  top: 50px; /* Adjust the top positioning */
+}
+
+.centered-image {
+  width: 100%; /* To fill the container */
+  height: auto; /* To maintain aspect ratio */
+}
+
+
+/* Additional styles for elements inside the container */
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+}
+
+/* Space out form elements */
+.space-y-8 > * {
+    margin-top: 1.25rem;
+  }
+
+  
+  /* Move the form container down by adding padding */
+.p-8 {
+  padding-top: 200px; /* Adjust this value based on your logo/container height */
+}
+
+/* Center form elements vertically */
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin-top: 50px; /* Adjust this margin as needed */
+}
+/* Additional styles for elements inside the form */
+/* Adjust margins for form elements */
+/* Style for the input fields */
+input[type="email"],
+input[type="password"] {
+  width: 450px;
+  height: 55px;
+  background: #FFFFFF;
+  border: 1px solid #923D41;
+  border-radius: 10px;
+  margin-bottom: 1rem; /* Adjust spacing between input fields */
+  padding: 0.5rem; /* Adjust padding as needed */
+}
+
+/* Additional styles for labels */
+label {
+  text-align: left;
+  font-weight: bold;
+  margin-bottom: 0.5rem; /* Adjust spacing between label and input */
+  display: block;
+}
+
+/* Adjust positioning for label and input */
+label + input {
+  margin-top: 0.5rem; /* Adjust vertical space between label and input */
+}
+
+
+[type="submit"] {
+  /* Add your custom button styles here */
+  /* Example styles */
+  background-color: #923D41;
+  color: white;
+  padding: 0.3rem 1rem;
+  border-radius: 0.2rem;
+  cursor: pointer;
+  margin-top: 2rem; /* Add margin top to create space between button and inputs */
+  width: 150px;
+  font-size: 1.2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap; /* Prevent text from wrapping onto next line */
+}
+
+/* Forgot Password */
+.forgot-password {
+  position: absolute;
+  width: 175px;
+  height: 21px;
+  left: 480px;
+  top: 480px;
+
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 0.1px;
+
+  color: #837B7B;
+}
+
+
+.request-text {
+    text-align: center;
+    color: #717171;
+    margin-top: 50px; /* Increase the margin to bring the text downward */
+    font-size: 20px;
+    margin-bottom: 10px; 
+    /* Add any other desired styles */
+  }
+
+.request-break {
+    display: block;
+  }
