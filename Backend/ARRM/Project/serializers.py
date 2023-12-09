@@ -115,7 +115,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         tasks = []
         for project_task in ProjectTask.objects.filter(project_milestone=milestone):
             task = ProjectTaskSerializer(project_task).data
-            task["assigned_ra"] = project_task.assigned_ra.email if project_task.assigned_ra else None
+            task["assignee"] = project_task.assignee.email if project_task.assignee else None
             tasks.append(task)
         
         return tasks
@@ -223,12 +223,12 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTask
-        fields = ["id", "project_milestone", "assigned_ra", "name", 
+        fields = ["id", "project_milestone", "assignee", "name", 
                   "description", "status", "hours_required", "due_date"]
     
-    def validate_assigned_ra(self, value):
-        if not UserAccount.objects.filter(id=value.id, role=Role.RA).exists():
-            raise serializers.ValidationError(f"{value.email} is not an RA!")
+    def validate_assignee(self, value):
+        if not UserAccount.objects.filter(id=value.id, role=[Role.RA, Role.FACULTY]).exists():
+            raise serializers.ValidationError(f"{value.email} is an admin and can't be assigned to a task!")
         
         return value
     
@@ -279,7 +279,7 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["project"] = instance.project_milestone.project.title
         representation["project_milestone"] = instance.project_milestone.milestone.name
-        representation["assigned_ra"] = instance.assigned_ra.email if instance.assigned_ra else None
+        representation["assignee"] = instance.assignee.email if instance.assignee else None
         return representation
     
 
@@ -302,9 +302,9 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        # ensure that the targeted RA is assigned to the project task
+        # ensure that the targeted Project Member is assigned to the Project Task
         if "project_task" in attrs.keys() and "target_ra" in attrs.keys():
-            if attrs["project_task"].assigned_ra != attrs["target_ra"]:
-                raise serializers.ValidationError("Target RA is not assigned to this project task!")
+            if attrs["project_task"].assignee != attrs["target_ra"]:
+                raise serializers.ValidationError("Target Project member is not assigned to this project task!")
             
         return attrs   
