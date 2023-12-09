@@ -167,7 +167,7 @@ class ProjectTask(models.Model):
 
     Attributes:
         - project_milestone (ProjectMilestone): the project milestone
-        - assigned_ra (UserAccount): the RA assigned to the task
+        - assignee (UserAccount): the RA or Faculty assigned to the task
         - name (CharField): the task's name
         - description (TextField): the task's description
         - status (CharField): the task's status
@@ -176,7 +176,7 @@ class ProjectTask(models.Model):
     """
     
     project_milestone = models.ForeignKey(ProjectMilestone, on_delete=models.CASCADE)
-    assigned_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
+    assignee = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
