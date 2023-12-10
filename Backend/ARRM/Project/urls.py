@@ -16,8 +16,7 @@ from .views import (
 
     RetrieveProjectMilestoneView, RemoveProjectTaskFromMilestoneView, DeleteProjectMilestoneView,
 
-    AddProjectTaskView, RetrieveTaskView, RetrievePendingTasksView, RetrieveTasksView, UpdateTaskView, 
-    DeleteProjectTaskView,
+    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, DeleteProjectTaskView,
 
     GiveProjectTaskFeedbackView, RetrieveProjectTaskFeedbacksView, UpdateProjectTaskFeedbackView,
 )
@@ -66,7 +65,6 @@ urlpatterns = [
     # PROJECT TASK ROUTES
     path("task/add/<int:project_id>/", AddProjectTaskView.as_view(), name="add-task"),
     path("task/get/<int:task_id>/", RetrieveTaskView.as_view(), name="retrieve-task"),
-    path("task/get/pending/", RetrievePendingTasksView.as_view(), name="retrieve-pending-tasks"),
     path("task/get/", RetrieveTasksView.as_view(), name="retrieve-tasks"),
     path("task/update/<int:task_id>/", UpdateTaskView.as_view(), name="update-task"),
     path("task/delete/<int:task_id>/", DeleteProjectTaskView.as_view(), name="delete-task"),
