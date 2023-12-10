@@ -68,6 +68,54 @@ class ProjectStudyArea(models.Model):
         return f"{self.project.title} -> {self.study_area}"
 
 
+class ProjectTeam(models.Model):
+    """
+    defines attributes for a ProjectTeam class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the user account of the team member
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email}"
+
+
+class ProjectTeamRequest(models.Model):
+    """
+    defines attributes for a ProjectTeamRequest class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the requesting user's account
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email}"
+    
+
+class ProjectTeamInvitation(models.Model):
+    """
+    defines attributes for a ProjectTeamInvitation class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the invited user's account
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email}"
+
+
 class Milestone(models.Model):
     """
     defines attributes for a Milestone class
@@ -119,7 +167,7 @@ class ProjectTask(models.Model):
 
     Attributes:
         - project_milestone (ProjectMilestone): the project milestone
-        - assigned_ra (UserAccount): the RA assigned to the task
+        - assignee (UserAccount): the RA or Faculty assigned to the task
         - name (CharField): the task's name
         - description (TextField): the task's description
         - status (CharField): the task's status
@@ -128,7 +176,7 @@ class ProjectTask(models.Model):
     """
     
     project_milestone = models.ForeignKey(ProjectMilestone, on_delete=models.CASCADE)
-    assigned_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
+    assignee = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
@@ -145,15 +193,17 @@ class ProjectTaskFeedback(models.Model):
 
     Attributes:
         - project_task (ProjectTask): the project task
-        - target_ra (UserAccount): the RA who is being reviewed
+        - reviewer (UserAccount) : the user who is reviewing the task
+        - target_member (UserAccount): the Project member who is being reviewed
         - feedback (TextField): the task's feedback
         - created_at (DateTimeField): the task's creation date
     """
 
     project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
-    target_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    target_member = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="target_member")
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.project_task.name} : {self.target_ra.email} - {self.project_task.name}"
+        return f"{self.project_task.name} : {self.target_member.email} - {self.project_task.name}"

@@ -32,11 +32,10 @@ class AcademicYearSerializer(serializers.ModelSerializer):
     
 
 class SemesterSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = Semester
-        fields = ["id", "user", "year", "semester", "start_date", 
+        fields = ["id", "year", "semester", "start_date", 
                   "end_date", "is_completed", "created_at"]
     
     def get_user(self, obj):
@@ -77,12 +76,11 @@ class SemesterSerializer(serializers.ModelSerializer):
         academic_year = AcademicYear.objects.filter(id=attrs["year"].id).first()
         # get the year from a date object
         start_year = attrs["start_date"].year
-        
-        if start_year != academic_year.start_year or start_year + 1 != academic_year.end_year: # type: ignore
+        if start_year != academic_year.start_year and start_year != academic_year.end_year: # type: ignore
             raise serializers.ValidationError("Semester dates do not match academic year!")
         
         end_year = attrs["end_date"].year
-        if end_year != academic_year.start_year or end_year + 1 != academic_year.end_year: # type: ignore
+        if end_year - 1 != academic_year.start_year and end_year + 1 != academic_year.end_year: # type: ignore
             raise serializers.ValidationError("Semester dates do not match academic year!")
 
         if Semester.objects.filter(year=attrs["year"], semester=attrs["semester"]).exists():
@@ -93,3 +91,9 @@ class SemesterSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         return Semester.objects.create(**validated_data)
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["year"] = f"{instance.year.start_year}-{instance.year.end_year}"
+        representation["user"] = instance.user.email
+        return representation
