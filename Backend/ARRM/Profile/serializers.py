@@ -3,10 +3,12 @@ from rest_framework import serializers
 from datetime import datetime
 
 from .models import (
-    Degree, DegreeType, WritingSample, StudyArea, Interest, 
-    Department, ResearchAssistant, RAInterests, Faculty, FacultyInterests)
+    Degree, DegreeType, WritingSample, StudyArea, Interest, Department, 
+    ResearchAssistant, ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
 from .helper import LINKIN_PROFILE_REGEX
 from Account.models import UserAccount
+from Miscelleneous.models import Semester
+from Miscelleneous.serializers import SemesterSerializer
 
 
 class DegreeSerializer(serializers.ModelSerializer):
@@ -169,6 +171,37 @@ class ResearchAssistantSerializer(serializers.ModelSerializer):
         for interest in interests:
             extended_interests.append(interest.interest.name)
         representation["interests"] = extended_interests
+        return representation
+    
+
+class ResearchAssistantAvailabilitySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ResearchAssistantAvailability
+        fields = ["id", "ra", "semester"]
+
+    def validate_semester(self, value):
+        if not Semester.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid semester!")
+        
+        return value
+    
+    def validate_ra(self, value):
+        if not ResearchAssistant.objects.filter(user=value).exists():
+            raise serializers.ValidationError("Invalid RA!")
+        
+        return value
+
+    def validate(self, attrs):
+        if ResearchAssistantAvailability.objects.filter(ra=attrs["ra"], semester=attrs["semester"]).exists():
+            raise serializers.ValidationError("Availability already exists for this RA!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["ra"] = instance.ra.user.email
+        representation["semester"] = SemesterSerializer(instance.semester).data
         return representation
     
 
