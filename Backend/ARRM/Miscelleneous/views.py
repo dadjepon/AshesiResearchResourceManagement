@@ -78,9 +78,6 @@ class RetrieveSemestersView(generics.ListAPIView):
     serializer_class = SemesterSerializer
     queryset = Semester.objects.all()
     filterset_fields = ["academic_year", "semester", "is_completed"]
-
-    def get_queryset(self):
-        return Semester.objects.filter()
     
 
 class DeleteSemesterView(APIView):

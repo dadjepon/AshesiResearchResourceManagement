@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator
 from datetime import datetime
 
 from Account.models import UserAccount
+from Miscelleneous.models import AcademicYear, Semester
 from .helper import (transcript_upload_path, sample_upload_path, profile_picture_upload_path,
                      cv_upload_path)
 
@@ -184,6 +185,22 @@ class RAInterests(models.Model):
 
     def __str__(self):
         return f"{self.ra.user.firstname} {self.ra.user.lastname}: {self.interest.name}"
+    
+
+class ResearchAssistantAvailability(models.Model):
+    """
+    defines attributes for a research assistant availability class
+
+    Attributes:
+        - ra (ResearchAssistant): the research assistant
+        - semester (Semester): the semester
+    """
+
+    ra = models.ForeignKey(ResearchAssistant, on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.semester.year.start_year}-{self.semester.year.end_year} {self.semester.semester}: {self.ra.user.firstname} {self.ra.user.lastname}"
     
 
 class Faculty(models.Model):
