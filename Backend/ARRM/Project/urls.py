@@ -16,7 +16,10 @@ from .views import (
 
     RetrieveProjectMilestoneView, RemoveProjectTaskFromMilestoneView, DeleteProjectMilestoneView,
 
-    AddProjectTaskView, RetrieveTaskView, RetrievePendingTasksView, UpdateTaskView, DeleteProjectTaskView,
+    AddProjectTaskView, RetrieveTaskView, RetrievePendingTasksView, RetrieveTasksView, UpdateTaskView, 
+    DeleteProjectTaskView,
+
+    GiveProjectTaskFeedbackView, RetrieveProjectTaskFeedbacksView, UpdateProjectTaskFeedbackView,
 )
 
 urlpatterns = [
@@ -55,14 +58,21 @@ urlpatterns = [
     path("milestone/get/", RetrieveMilestonesView.as_view(), name="retrieve-milestones"),
     path("milestone/delete/<int:milestone_id>/", DeleteMilestoneView.as_view(), name="delete-milestone"),
 
-    # PROJECT MILESTONE AND TASK ROUTES
+    # PROJECT MILESTONE ROUTES
     path("project_milestone/get/<int:project_milestone_id>/", RetrieveProjectMilestoneView.as_view(), name="retrieve-project-milestone"),
     path("project_milestone/task/remove/", RemoveProjectTaskFromMilestoneView.as_view(), name="remove-project-task-from-milestone"),
     path("project_milestone/delete/<int:project_milestone_id>/", DeleteProjectMilestoneView.as_view(), name="delete-project-milestone"),
     
+    # PROJECT TASK ROUTES
     path("task/add/<int:project_id>/", AddProjectTaskView.as_view(), name="add-task"),
     path("task/get/<int:task_id>/", RetrieveTaskView.as_view(), name="retrieve-task"),
     path("task/get/pending/", RetrievePendingTasksView.as_view(), name="retrieve-pending-tasks"),
+    path("task/get/", RetrieveTasksView.as_view(), name="retrieve-tasks"),
     path("task/update/<int:task_id>/", UpdateTaskView.as_view(), name="update-task"),
     path("task/delete/<int:task_id>/", DeleteProjectTaskView.as_view(), name="delete-task"),
+
+    # PROJECT TASK FEEDBACK ROUTES
+    path("task/feedback/give/", GiveProjectTaskFeedbackView.as_view(), name="give-task-feedback"),
+    path("task/feedback/get/<int:task_id>/", RetrieveProjectTaskFeedbacksView.as_view(), name="retrieve-project-task-feedbacks"),
+    path("task/feedback/update/<int:feedback_id>/", UpdateProjectTaskFeedbackView.as_view(), name="update-project-task-feedback"),
 ]
