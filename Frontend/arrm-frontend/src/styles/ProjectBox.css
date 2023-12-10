@@ -1,0 +1,23 @@
+
+.project-box {
+    border: 1px solid #ddd; 
+    padding: 20px;
+    margin: 10px;
+    width: 300px; 
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .bold {
+    font-weight: bold;
+  }
+  
+  .view-button {
+    margin-top: 10px;
+  }
+  
+
+  

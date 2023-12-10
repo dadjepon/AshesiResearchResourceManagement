@@ -1,0 +1,52 @@
+background.css
+.bg-container {
+    display: flex;
+    /* Set other necessary styles for the container */
+  }
+  
+  .left-half {
+    /* Styles for the left half, gradient background, etc. */
+    /* Ensure it occupies the left side */
+    width: 50%; /* Adjust as needed */
+    z-index: -1; /* Ensure it's behind other elements */
+  }
+  
+  .right-half {
+    /* Styles for the right half, background color, etc. */
+    /* Ensure it occupies the right side */
+    width: 50%; /* Adjust as needed */
+    z-index: -1; /* Ensure it's behind other elements */
+     /* Hide overflowing content */
+
+  }
+  
+  /* Other classes for images or backgrounds */
+  /* Adjust positioning, sizes, and z-index as needed */
+  .top-right-image {
+    position: absolute;
+    /* top: 10px;
+    right: 10px; */
+    width: 120px;
+    height: 100px;
+    z-index: 1; /* To ensure it's above the background */
+  }
+
+  
+  .center-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-20%, -60%);
+    z-index: 1; /* To ensure it's above the background */
+  }
+  
+  .center-image.bigger-image {
+    width: 3000px; 
+    height: 3000px; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-30%, -60%);
+    z-index: 1; /* To ensure it's above the background */
+  }
+

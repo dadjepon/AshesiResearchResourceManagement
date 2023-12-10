@@ -1,0 +1,66 @@
+
+  
+  .inv-content {
+    background-color: #fffdfd;
+    margin-top: 60px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%; 
+    max-width: 1240px;
+    transition: margin-left 0.4s; 
+    overflow: hidden;
+    z-index: 0;
+
+  }
+  
+  .non-expanding{
+    min-height: 100vh;
+    width:100%;
+    position: fixed;
+    z-index: 0;
+  }
+  
+
+  .project-div{
+    margin:0px;
+    padding: 0px;
+    justify-content: space-between;
+  }
+
+  .project-div span{
+    justify-content: space-between;
+  }
+
+  .project-div span button{
+    width: 85px;
+    padding:5px 12px 5px 12px ;
+    margin-left: 50px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: var(--medium-font-size);
+    color: white;
+    font-weight: bold;
+  }
+
+
+  .accept-button {
+    background-color: var(--request-button);
+    border: 1px solid var(--request-button);
+  }
+  
+  .accept-button:hover {
+    background-color:var(--request-button-hover);
+    border: 1px solid var(--request-button-hover);;
+  }
+  
+  .decline-button {
+    background-color: var(--revoke-button);
+    border: 1px solid var(--revoke-button);
+  }
+  
+  .decline-button:hover {
+    background-color: var(--revoke-button-hover);
+    border: 1px solid  var(--revoke-button-hover);
+  }
+  
