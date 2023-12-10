@@ -199,9 +199,6 @@ class ChangePasswordSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("Incorrect password!")
         
-        if value == self.validated_data["new_password"]: # type: ignore
-            raise serializers.ValidationError("New password must be different from old password!")
-        
         if not re.match(PASSWORD_REGEX, value):
             raise serializers.ValidationError("Invalid password")
         
@@ -222,6 +219,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs["new_password"] != attrs["confirm_password"]:
             raise serializers.ValidationError("Passwords do not match")
+        
+        if attrs["old_password"] == attrs["new_password"]:
+            raise serializers.ValidationError("New password cannot be the same as old password!")
         
         validate_password(attrs["new_password"], user=self.context["request"].user)
         return attrs

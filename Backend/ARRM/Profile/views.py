@@ -6,11 +6,11 @@ from rest_framework.permissions import IsAdminUser
 import os
 
 from .models import (
-    Degree, WritingSample, Interest, ResearchAssistant, RAInterests,
-    Faculty, FacultyInterests)
+    Degree, WritingSample, Interest, ResearchAssistant, 
+    ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
 from .serializers import (
-    DegreeSerializer, WritingSampleSerializer, InterestSerializer, ResearchAssistantSerializer,
-    FacultySerializer)
+    DegreeSerializer, WritingSampleSerializer, InterestSerializer, 
+    ResearchAssistantSerializer, ResearchAssistantAvailabilitySerializer, FacultySerializer)
 from Account.models import Role
 from Account.permissions import IsBlacklistedToken
 
@@ -236,6 +236,45 @@ class DeleteWritingSampleView(APIView):
 
         return Response({"success": "Writing sample deleted successfully"}, status=status.HTTP_200_OK)
     
+
+class AddRAToSemesterView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+
+    def post(self, request):
+        semesters = request.data["semesters"]
+        for semester in semesters:
+            serializer = ResearchAssistantAvailabilitySerializer(data={"ra": request.data["ra"], "semester": semester}) # type: ignore
+            if serializer.is_valid():
+                serializer.save()
+        
+        return Response(ResearchAssistantAvailabilitySerializer(ResearchAssistantAvailability.objects.filter(ra=request.data["ra"]), many=True).data, status=status.HTTP_201_CREATED)
+
+
+class RemoveRAFromSemesterView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+
+    def delete(self, request, availability_id):
+        try:
+            semester = ResearchAssistantAvailability.objects.get(id=availability_id)
+        except ResearchAssistantAvailability.DoesNotExist:
+            return Response({"error": "Semester not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        semester.delete()
+        return Response({"success": "Semester deleted successfully"}, status=status.HTTP_200_OK)
+    
+
+class RetrieveRAAvaliabilityView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, user_id):
+        try:
+            user = ResearchAssistant.objects.get(user=user_id)
+        except ResearchAssistant.DoesNotExist:
+            return Response({"error": "Research Assistant not found!"}, status=status.HTTP_404_NOT_FOUND)
+                
+        serializer = ResearchAssistantAvailabilitySerializer(ResearchAssistantAvailability.objects.filter(ra=user), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class AddInterestView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
