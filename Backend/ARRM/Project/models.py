@@ -193,16 +193,17 @@ class ProjectTaskFeedback(models.Model):
 
     Attributes:
         - project_task (ProjectTask): the project task
-        - target_ra (UserAccount): the RA who is being reviewed
+        - reviewer (UserAccount) : the user who is reviewing the task
+        - target_member (UserAccount): the Project member who is being reviewed
         - feedback (TextField): the task's feedback
         - created_at (DateTimeField): the task's creation date
     """
 
     project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
-    # don't need target_ra since project_task has an assigned ra
-    target_ra = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    target_member = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="target_member")
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.project_task.name} : {self.target_ra.email} - {self.project_task.name}"
+        return f"{self.project_task.name} : {self.target_member.email} - {self.project_task.name}"
