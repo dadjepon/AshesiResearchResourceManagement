@@ -1,16 +1,17 @@
-from pickletools import read_uint1
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from datetime import timedelta
+from django.utils import timezone
 
 from .models import (
     Project, ProjectStatus, ProjectStudyArea, ProjectTeam, ProjectTeamRequest, 
     ProjectTeamInvitation, Milestone, ProjectMilestoneTemplate, ProjectMilestone, 
-    ProjectTask)
+    ProjectTask, ProjectTaskFeedback)
 from .serializers import (
-    ProjectSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, 
-    MilestoneSerializer, ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer)
+    ProjectSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, MilestoneSerializer, 
+    ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, ProjectTaskFeedbackSerializer)
 from .helper import MILESTONE_DICT, PROJECT_MILESTONE_TEMPLATE_DICT
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role, UserAccount
@@ -409,7 +410,7 @@ class RetrieveProjectTeamMembersView(generics.ListAPIView):
         except Project.DoesNotExist:
             return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
 
-        if project.user != request.user or not ProjectTeam.objects.filter(project=project, user=request.user).exists():
+        if not ProjectTeam.objects.filter(project=project, user=request.user).exists():
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
 
         project_team_members = ProjectTeam.objects.filter(project=project)
@@ -661,17 +662,26 @@ class RetrieveTaskView(APIView):
         
         serializer = ProjectTaskSerializer(project_task, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
-class RetrievePendingTasksView(generics.ListAPIView):
+
+class RetrieveTasksView(generics.ListAPIView):
+    # should allow to filter by status, due date, assigned RA, project milestone
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
     serializer_class = ProjectTaskSerializer
     queryset = ProjectTask.objects.all()
-    filterset_fields = ["name", "status", "due_date", "project_milestone", "assigned_ra"]
-    
+    filterset_fields = ["name", "status", "due_date", "project_milestone", "assigned_ra", "project_milestone__name"]
+
     def get_queryset(self):
-        return ProjectTask.objects.filter(project_milestone__project__user=self.request.user, status=ProjectStatus.TODO)
-    
+        # retrieve tasks for all project the user is a part of, use ProjectTeam to decide this
+        project_teams = ProjectTeam.objects.filter(user=self.request.user)
+
+        # pre-fetch project_milestone for each task
+        queryset = ProjectTask.objects.filter(
+            project_milestone__project__in=[project_team.project for project_team in project_teams]
+        ).prefetch_related("project_milestone")
+
+        return queryset
+
 
 class UpdateTaskView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
@@ -728,3 +738,59 @@ class DeleteProjectTaskView(APIView):
         
         project_task.delete()
         return Response({"success": "Project task deleted successfully!"}, status=status.HTTP_200_OK)
+    
+
+class GiveProjectTaskFeedbackView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request):
+        serializer = ProjectTaskFeedbackSerializer(data=request.data, context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            project_task = ProjectTask.objects.get(id=request.data["project_task"])
+            task_serializer =  ProjectTaskSerializer(project_task, context={"request": request})
+            return Response(task_serializer.to_representation(project_task), status=status.HTTP_201_CREATED) # type: ignore
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class RetrieveProjectTaskFeedbacksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, task_id):
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        team_members = ProjectTeam.objects.filter(project=project_task.project_milestone.project)
+        for team_member in team_members:
+            print(team_member.user.email)
+        
+        if not ProjectTeam.objects.filter(project=project_task.project_milestone.project, user=request.user).exists():
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        project_task_feedbacks = ProjectTaskFeedback.objects.filter(project_task=project_task)
+        return Response(ProjectTaskFeedbackSerializer(project_task_feedbacks, many=True).data, status=status.HTTP_200_OK)
+    
+
+class UpdateProjectTaskFeedbackView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def patch(self, request, feedback_id):
+        try:
+            task_feedback = ProjectTaskFeedback.objects.get(id=feedback_id)
+        except ProjectTaskFeedback.DoesNotExist:
+            return Response({"error": "Project task feedback not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != task_feedback.reviewer:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # ensure feedback cannot be changed if its past 15 minutes
+        if task_feedback.created_at < timezone.now() - timedelta(minutes=15):
+            return Response({"error": "You cannot change feedback that is more than 15 minutes old!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        task_feedback.feedback = request.data["feedback"]
+        task_feedback.save()
+        project_task = ProjectTask.objects.get(id=task_feedback.project_task.id) # type: ignore
+        task_serializer =  ProjectTaskSerializer(project_task, context={"request": request})
+        return Response(task_serializer.to_representation(project_task), status=status.HTTP_200_OK)
