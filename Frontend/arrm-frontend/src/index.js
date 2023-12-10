@@ -14,6 +14,8 @@ import TheReset from './pages/resetpage';
 import TheSuccess from './pages/successpage';
 import Modal1 from './components/modal1';
 import Modal2 from './components/modal2';
+import Modal3 from './components/modal3';
+import Modal4 from './components/modal4';
 import reportWebVitals from './reportWebVitals';
  
 ReactDOM.render(
@@ -32,6 +34,8 @@ ReactDOM.render(
       <Route path="/successpage" element={<TheSuccess />} />
       <Route path="/modal1" element={<Modal1 />} />
       <Route path="/modal2" element={<Modal2 />} />
+      <Route path="/modal3" element={<Modal3 />} />
+      <Route path="/modal4" element={<Modal4 />} />
       {/* Add more routes for other components/pages */}
     </Routes>
   </Router>,
