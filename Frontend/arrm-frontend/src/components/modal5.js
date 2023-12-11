@@ -1,19 +1,26 @@
-import React, { useState, useRef } from "react";
-import '../styles/modal1.css'; // Import your modal1.css file
+import React, { useState, useRef } from 'react';
+import '../styles/modal5.css'; // Import your modal5.css file
 
-function Modal1() {
+function Modal5() {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleUpload = (e) => {
-    setFile(URL.createObjectURL(e.target.files[0]));
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFile(event.target.result);
+      };
+      reader.readAsDataURL(selectedFile);
+    }
   };
 
   const openFileInput = () => {
     fileInputRef.current.click();
   };
 
-  const logo = '/images/Import pdf.png';  
+  const logo = '/images/Camera.png';  
   const logo_2 = '/images/background_image.png';
 
   return (
@@ -24,12 +31,14 @@ function Modal1() {
       <div className="preview-box">
         {/* Add the text inside the preview box as a link */}
         <a href="#!" className="upload-text" onClick={openFileInput}>
-          Upload your CV
+          Upload a profile picture
         </a>
         {file && <img src={file} alt="Profile" />}
         <img src={logo} alt="camera Logo" className="cam-image" />
-      </div>
-      <div className="upload-section">
+        {/* Display the uploaded image */}
+        {file && <img src={file} alt="Profile" className="uploaded-image" />}
+        </div>
+        <div className="upload-section">
         {/* Hidden file input */}
         <input
           type="file"
@@ -39,12 +48,12 @@ function Modal1() {
           ref={fileInputRef}
         />
         {/* Button to trigger file input */}
-        <button className="upload-button">
-          Upload
+        <button className="upload-button" onClick={openFileInput}>
+          Upload Image
         </button>
       </div>
     </div>
   );
-};
+}
 
-export default Modal1;
+export default Modal5;
