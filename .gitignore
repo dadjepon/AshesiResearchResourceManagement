@@ -1,4 +1,4 @@
-# ignore the virtual environment
 Backend/venv
+Backend/.env
 .vscode/
 resources/
