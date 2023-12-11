@@ -23,8 +23,19 @@ import Modal5 from './components/modal5';
 import AdminSemRA from './components/admin_sem_RA';
 import RaDelete from './components/ra_delete';
 import reportWebVitals from './reportWebVitals';
+<<<<<<< HEAD
 
  
+=======
+import InvitedProjectsPage from './pages/InvitedProjectsPage';
+import RequestedProjectsPage from './pages/RequestedProjectsPage';
+import ViewProjectPage from './pages/ViewProjectPage';
+import UserProfilePage from './pages/UserProfilePage';
+
+import HomePage from './pages/HomePage';
+import './App.css';
+
+>>>>>>> main
 ReactDOM.render(
   <Router>
     <Routes>
@@ -41,6 +52,7 @@ ReactDOM.render(
       <Route path="/successpage" element={<TheSuccess />} />
       <Route path="/modal1" element={<Modal1 />} />
       <Route path="/modal2" element={<Modal2 />} />
+<<<<<<< HEAD
       <Route path="/modal3" element={<Modal3 />} />
       <Route path="/modal4" element={<Modal4 />} />
       <Route path="/admin_premake" element={<AdminPremake />} />
@@ -50,6 +62,14 @@ ReactDOM.render(
       <Route path="/admin_sem_RA" element={<AdminSemRA />} />
       <Route path="/ra_delete" element={<RaDelete />} />
       {/* Add more routes for other components/pages */}
+=======
+      <Route exact path="/home" element={<HomePage />} />
+      <Route path="/inv_projects" element={<InvitedProjectsPage />} />
+      <Route path="/req_projects" element={<RequestedProjectsPage />} />
+      <Route path="/view_project" element={<ViewProjectPage />} />
+      <Route path="/profile" element={<UserProfilePage/>} />
+
+>>>>>>> main
     </Routes>
   </Router>,
   document.getElementById('root')
