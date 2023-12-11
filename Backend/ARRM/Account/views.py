@@ -123,7 +123,7 @@ class AccountView(APIView):
         returns the user account details
         """
 
-        serializer = UserAccountSerializer(request.user)
+        serializer = UserAccountSerializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
