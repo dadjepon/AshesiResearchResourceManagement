@@ -4,6 +4,8 @@ from .views import (
     RemoveProjectStudyAreaView, ChangeProjectVisibilityView, DeleteProjectView, 
     RestoreProjectView, DeleteProjectPermanentlyView,
 
+    # ProjectMatchScoresView,
+
     RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
     AcceptProjectMembershipView, RejectProjectMembershipView, DeleteProjectMembershipRequestView,
 
@@ -32,6 +34,9 @@ urlpatterns = [
     path("delete/<int:project_id>/", DeleteProjectView.as_view(), name="delete-project"),
     path("restore/<int:project_id>/", RestoreProjectView.as_view(), name="restore-project"),
     path("delete/permanently/<int:project_id>/", DeleteProjectPermanentlyView.as_view(), name="delete-project-permanently"),
+
+    # PROJECT MATCH SCORES ROUTES
+    # path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
 
     # PROJECT TEAM
     path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
