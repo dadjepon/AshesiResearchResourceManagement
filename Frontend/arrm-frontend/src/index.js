@@ -18,8 +18,10 @@ import reportWebVitals from './reportWebVitals';
 import InvitedProjectsPage from './pages/InvitedProjectsPage';
 import RequestedProjectsPage from './pages/RequestedProjectsPage';
 import ViewProjectPage from './pages/ViewProjectPage';
+import UserProfilePage from './pages/UserProfilePage';
+
 import HomePage from './pages/HomePage';
-import 'App.css';
+import './App.css';
 
 ReactDOM.render(
   <Router>
@@ -41,6 +43,8 @@ ReactDOM.render(
       <Route path="/inv_projects" element={<InvitedProjectsPage />} />
       <Route path="/req_projects" element={<RequestedProjectsPage />} />
       <Route path="/view_project" element={<ViewProjectPage />} />
+      <Route path="/profile" element={<UserProfilePage/>} />
+
     </Routes>
   </Router>,
   document.getElementById('root')

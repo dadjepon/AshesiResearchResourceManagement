@@ -1,74 +1,76 @@
 :root {
    
-    --button-decline : #7bb809;
-      --button-accept: #8B0000;
-      --revoke-button: #a52525e1;
-      --revoke-button-hover: #a52525;
-      --request-button: #25af25e1;
-      --request-button-hover: #25af25;
-  }
-  
-  
-  .inv-content {
-    background-color: #fffdfd;
-    margin-top: 60px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    width: 100%; 
-    max-width: 1240px;
-    overflow: hidden;
-    z-index: 0;
-
-  }
-  
-  .non-expanding{
-    min-height: 100vh;
-    width:100%;
-    position: fixed;
-    z-index: 0;
-  }
-  
-
-  .req-project-div{
-    margin:0px;
-    padding: 0px;
-    justify-content: space-between;
-  }
-
-  .req-project-div span{
-    justify-content: space-between;
-  }
-
-  .req-project-div span button{
-    width: 150px;
-    padding:5px 12px 5px 12px ;
-    margin-left: 85px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: var(--medium-font-size);
-    color: white;
-    font-weight: bold;
-  }
+  --button-decline : #008000;
+    --button-accept: #B80909;
+    --revoke-button: #B80909;
+    --revoke-button-hover: #B80909;
+    --request-button: #008000;
+    --request-button-hover: #008000;
+}
 
 
-  .request-button {
-    background-color: var(--request-button);
-    border: 1px solid var(--request-button);
-  }
+.inv-content {
+  background-color: #fffdfd;
+  margin-top: 60px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%; 
+  max-width: 1240px;
+  overflow: hidden;
+  z-index: 0;
+
+}
+
+.non-expanding{
+  min-height: 100vh;
+  width:100%;
+  position: fixed;
+  z-index: 0;
+}
+
+
+.req-project-div{
+  margin:0px;
+  padding: 0px;
+  justify-content: space-between;
+}
+
+.req-project-div span{
+  justify-content: space-between;
+}
+
+.req-project-div span button{
+  width: 150px;
+  padding:5px 12px 5px 12px ;
+  margin-left: 85px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: var(--medium-font-size);
+  color: var(--default-light-color);
   
-  .request-button:hover {
-    background-color:var(--request-button-hover);
-    border: 1px solid var(--request-button-hover);;
-  }
-  
-  .revoke-button {
-    background-color: var(--revoke-button);
-    border: 1px solid var(--revoke-button);
-  }
-  
-  .revoke-button:hover {
-    background-color: var(--revoke-button-hover);
-    border: 1px solid var(--revoke-button-hover);
-  }
-  
+  font-weight: bold;
+}
+
+
+.request-button {
+  border: 1px solid var(--request-button);
+}
+
+.request-button:hover {
+  background-color:var(--request-button-hover);
+  border: 1px solid var(--request-button-hover);
+  color: #fff;
+}
+
+.revoke-button {
+  border: 1px solid var(--revoke-button);
+}
+
+.revoke-button:hover {
+  background-color: var(--revoke-button-hover);
+  border: 1px solid var(--revoke-button-hover);
+  color: #fff;
+}
+
+
