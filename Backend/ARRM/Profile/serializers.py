@@ -9,6 +9,7 @@ from .helper import LINKIN_PROFILE_REGEX
 from Account.models import UserAccount
 from Miscelleneous.models import Semester
 from Miscelleneous.serializers import SemesterSerializer
+from Project.helper import get_ra_total_hours, get_ra_project_hours
 
 
 class DegreeSerializer(serializers.ModelSerializer):
@@ -166,11 +167,27 @@ class ResearchAssistantSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["user"] = instance.user.email
+
+        # retrieve interests
         extended_interests = []
         interests = RAInterests.objects.filter(ra=instance.user.id)
         for interest in interests:
-            extended_interests.append(interest.interest.name)
+            extended_interests.append(InterestSerializer(interest.interest).data)
         representation["interests"] = extended_interests
+
+        # retrieve writing samples
+        samples = WritingSample.objects.filter(user=instance.user.id)
+        representation["writing_samples"] = WritingSampleSerializer(samples, many=True, context=self.context).data
+
+        # retrieve degrees
+        degrees = Degree.objects.filter(user=instance.user.id)
+        representation["degrees"] = DegreeSerializer(degrees, many=True, context=self.context).data
+
+        # retrieve availability
+        ra_total_hours = get_ra_total_hours(instance)
+        ra_project_hours = get_ra_project_hours(instance)
+        representation["availability"] = ra_total_hours - ra_project_hours
+
         return representation
     
 
@@ -234,9 +251,20 @@ class FacultySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["user"] = instance.user.email
+
+        # retrieve interests
         extended_interests = []
         interests = FacultyInterests.objects.filter(faculty=instance.user.id)
         for interest in interests:
-            extended_interests.append(interest.interest.name)
+            extended_interests.append(InterestSerializer(interest.interest).data)
         representation["interests"] = extended_interests
+
+        # retrieve degrees
+        degrees = Degree.objects.filter(user=instance.user.id)
+        representation["degrees"] = DegreeSerializer(degrees, many=True, context=self.context).data
+
+        # writing samples
+        samples = WritingSample.objects.filter(user=instance.user.id)
+        representation["writing_samples"] = WritingSampleSerializer(samples, many=True, context=self.context).data
+
         return representation
