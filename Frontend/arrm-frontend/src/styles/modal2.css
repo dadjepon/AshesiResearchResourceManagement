@@ -1,32 +1,93 @@
-.modal2-container {
-    position: absolute;
-    width: 800px;
-    height: 650px;
-    left: 498px;
-    top: 208px;
-    background-color: #FFFFFF;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: row;
-  }
-  
-  .form-container {
-    width: 50%;
-    padding: 20px;
-  }
-  
-  .form-field {
-    margin-bottom: 10px;
-  }
-  
-  .type-form-field,
-  .grad-form-field,
-  .major-form-field,
-  .uni-form-field,
-  .trans-form-field {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .type-form-field select,
-  
+/* modal2.css */
+
+/* Main container styles */
+.mainContainer {
+  position: absolute;
+  width: 800px;
+  height: 650px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Bio text styles */
+.bioText {
+  position: absolute;
+  width: 33px;
+  height: 19px;
+  left: 170px;
+  top: 200px;
+  /* Add font styles here */
+  color: #000000;
+  /* Add other bio text styles */
+}
+
+/* Bio text field styles */
+.bioTextField {
+  position: absolute;
+  width: 565px;
+  height: 100px;
+  left: 170px;
+  top: 220px;
+  /* Add bio text field styles */
+  background: #FFFFFF;
+  border: 1px solid #923D41;
+  border-radius: 10px;
+  /* Add other bio text field styles */
+}
+
+/* LinkedIn profile text styles */
+.linkedInProfileText {
+  position: absolute;
+  width: 148px;
+  height: 18px;
+  left: 170px;
+  top: 350px;
+  /* Add font styles here */
+  color: #000000;
+  /* Add other LinkedIn profile text styles */
+}
+
+/* LinkedIn profile box styles */
+.linkedInProfileBox {
+  position: absolute;
+  width: 565px;
+  height: 51px;
+  left: 170px;
+  top: 380px;
+  /* Add LinkedIn profile box styles */
+  background: #FFFFFF;
+  border: 1px solid #923D41;
+  border-radius: 10px;
+  /* Add other LinkedIn profile box styles */
+}
+
+/* Button styles */
+.modal2Button {
+  box-sizing: border-box;
+  position: absolute;
+  width: 150px;
+  height: 50px;
+  left: 350px;
+  top: 500px;
+  background: #923D41;
+  border: 1px solid #923D41;
+  border-radius: 10px;
+  /* Add other button styles as needed */
+}
+
+.back-container {
+  position: absolute;
+  width: 150px; /* Set the width as needed */
+  height: 147.12px; /* Set the height as needed */
+  left: calc(40% + 1px); /* Adjust left positioning to shift the logo right */
+  top: 50px; /* Adjust the top positioning */
+}
+
+/* Define the styles for the required asterisk */
+.requiredAsterisk {
+  color: red;
+  margin-left: 3px; /* Adjust the spacing between 'Bio' and the asterisk */
+}
