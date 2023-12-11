@@ -39,28 +39,28 @@
     border-radius: 5px;
     cursor: pointer;
     font-size: var(--medium-font-size);
-    color: white;
+    color: var(--default-light-color);
     font-weight: bold;
   }
 
 
   .accept-button {
-    background-color: var(--request-button);
     border: 1px solid var(--request-button);
   }
   
   .accept-button:hover {
     background-color:var(--request-button-hover);
-    border: 1px solid var(--request-button-hover);;
+    border: 1px solid var(--request-button-hover);
+    color: white;
   }
   
   .decline-button {
-    background-color: var(--revoke-button);
     border: 1px solid var(--revoke-button);
   }
   
   .decline-button:hover {
     background-color: var(--revoke-button-hover);
     border: 1px solid  var(--revoke-button-hover);
+    color: white;
   }
   

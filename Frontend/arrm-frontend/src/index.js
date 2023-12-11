@@ -15,7 +15,14 @@ import TheSuccess from './pages/successpage';
 import Modal1 from './components/modal1';
 import Modal2 from './components/modal2';
 import reportWebVitals from './reportWebVitals';
- 
+import InvitedProjectsPage from './pages/InvitedProjectsPage';
+import RequestedProjectsPage from './pages/RequestedProjectsPage';
+import ViewProjectPage from './pages/ViewProjectPage';
+import UserProfilePage from './pages/UserProfilePage';
+
+import HomePage from './pages/HomePage';
+import './App.css';
+
 ReactDOM.render(
   <Router>
     <Routes>
@@ -32,7 +39,12 @@ ReactDOM.render(
       <Route path="/successpage" element={<TheSuccess />} />
       <Route path="/modal1" element={<Modal1 />} />
       <Route path="/modal2" element={<Modal2 />} />
-      {/* Add more routes for other components/pages */}
+      <Route exact path="/home" element={<HomePage />} />
+      <Route path="/inv_projects" element={<InvitedProjectsPage />} />
+      <Route path="/req_projects" element={<RequestedProjectsPage />} />
+      <Route path="/view_project" element={<ViewProjectPage />} />
+      <Route path="/profile" element={<UserProfilePage/>} />
+
     </Routes>
   </Router>,
   document.getElementById('root')
