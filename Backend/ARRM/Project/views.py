@@ -1,3 +1,4 @@
+from turtle import st
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,15 +8,16 @@ from django.utils import timezone
 
 from .models import (
     Project, ProjectStatus, ProjectStudyArea, ProjectTeam, ProjectTeamRequest, 
-    ProjectTeamInvitation, Milestone, ProjectMilestoneTemplate, ProjectMilestone, 
-    ProjectTask, ProjectTaskFeedback)
+    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestoneTemplate, 
+    ProjectMilestone, ProjectTask, ProjectTaskFeedback)
 from .serializers import (
-    ProjectSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, MilestoneSerializer, 
+    ProjectSerializer, ProjectMatchScoresSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, MilestoneSerializer, 
     ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, ProjectTaskFeedbackSerializer)
-from .helper import MILESTONE_DICT, PROJECT_MILESTONE_TEMPLATE_DICT
+from .helper import MILESTONE_DICT, PROJECT_MILESTONE_TEMPLATE_DICT, get_cummulative_task_hours, get_ra_available_hours, get_available_ras
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role, UserAccount
-from Profile.models import StudyArea
+from Profile.models import ResearchAssistant, StudyArea
+from Profile.serializers import ResearchAssistantSerializer
 
 
 class AddProjectView(APIView):
@@ -59,6 +61,9 @@ class RetrieveProjectView(APIView):
             project = Project.objects.get(id=project_id, is_deleted=False)
         except Project.DoesNotExist:
             return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # delete project matching scores older than 1 day
+        ProjectMatchScores.clean_matches(project)
         
         serializer = ProjectSerializer(project, context={"request": request})
         response = serializer.to_representation(project)
@@ -123,8 +128,9 @@ class ChangeProjectVisibilityView(APIView):
             return Response({"error": "Invalid visibility!"}, status=status.HTTP_400_BAD_REQUEST)
         
         if visibility == "public":
-            if not project.description or not project.start_date or not project.end_date:
-                return Response({"error": "Project description, start date and end date are required for public projects!"}, status=status.HTTP_400_BAD_REQUEST)
+            if not project.description or not project.start_date or not project.end_date or not project.estimated_project_hours:
+                return Response({"error": "Project description, start date, end date and estimated weekly hours are required for public projects!"}, 
+                                status=status.HTTP_400_BAD_REQUEST)
         
         project.visibility = visibility
         project.save()
@@ -453,6 +459,72 @@ class DeleteProjectPermanentlyView(APIView):
 
         project.delete()
         return Response({"success": "Project deleted permanently!"}, status=status.HTTP_200_OK)
+    
+
+# class ProjectMatchScoresView(APIView):
+#     permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+#     def post(self, request, project_id):
+#         try:
+#             project = Project.objects.get(id=project_id)
+#         except Project.DoesNotExist:
+#             return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+#         if project.user != request.user:
+#             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+#         # delete existing project matching scores before computing new ones
+#         ProjectMatchScores.objects.filter(project=project).delete()
+        
+#         # ensure the project details are complete
+#         if not project.description or not project.start_date or not project.end_date:
+#             return Response({"error": "Project details are not complete. Project description, start date and end date are required to complete project!"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # ensure project has study areas
+#         if not ProjectStudyArea.objects.filter(project=project).exists():
+#             return Response({"error": "Project has no study areas! Study areas are required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # ensure estimated weekly hours is not None
+#         if not project.estimated_project_hours:
+#             return Response({"error": "Estimated project hours is required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+#         # retrieve all project tasks and compute required project hours
+#         assigned_project_hours = get_cummulative_task_hours(project)
+
+#         # retrieve RAs and compute available hours
+#         ra_available_hours = get_ra_available_hours(project)
+#         available_ras = get_available_ras(ra_available_hours, project, assigned_project_hours)
+
+#         # retrieve project study areas
+#         project_study_areas = ProjectStudyArea.objects.filter(project=project)
+#         project_study_areas = [project_study_area.study_area for project_study_area in project_study_areas]
+        
+#         # retrieve RA profile; interests, study areas, degrees
+#         ra_matching_scores = dict()
+#         for ra_id in available_ras:
+#             ra = ResearchAssistantSerializer(ResearchAssistant.objects.get(user__id=ra_id), context={"request": request}).data
+            
+#             # compute matching score
+#             matching_score = 0
+#             total_score = 0
+#             study_areas = set(interest["study_area"] for interest in ra["interests"])
+#             for area in project_study_areas:
+#                 if area in study_areas:
+#                     matching_score += 1
+#                 total_score += 1
+
+#             interests = set(interest["name"] for interest in ra["interests"])
+#             title_details = set(project.title.split(" "))
+#             print(interests)
+#             print(title_details)
+
+#             print(matching_score)
+#             print(total_score)
+
+#         # save match score above 0
+
+#         # return match score
+#         return Response({"success": "Project matching scores computed successfully!", "ra_hours": ra_available_hours}, status=status.HTTP_200_OK)
     
 
 class AddMilestoneView(APIView):
