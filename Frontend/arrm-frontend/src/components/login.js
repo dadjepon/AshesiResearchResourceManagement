@@ -14,10 +14,35 @@ function LoginPage() {
     setPassword(e.target.value);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     // perform your authentication logic here
-    console.log(email, password);
+    const formData = new FormData(event.target);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/account/login/", {
+        method: "POST",
+        body: formData,
+      }); 
+
+      if (response.ok) {
+        const responseData = await response.json();
+
+        // store the tokens as cookies
+        document.cookie = `access_token=${responseData.access}`;
+        document.cookie = `refresh_token=${responseData.refresh}`;
+
+        // redirect the user to the dashboard
+        window.location.href = "/dashboard";
+      } else {
+        if (response.status === 401) {
+          // handle unauthorized error
+          console.log("UNAUTHORIZED");
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

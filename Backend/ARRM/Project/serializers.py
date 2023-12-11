@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from .models import (
     ProjectStatus, Project, ProjectStudyArea, ProjectTeam, ProjectTeamRequest,
-    ProjectTeamInvitation, Milestone, ProjectMilestone, ProjectTask, ProjectTaskFeedback,
+    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskFeedback,
 )
 from Profile.models import StudyArea
 from Account.models import Role, UserAccount
@@ -17,8 +17,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            "id", "user", "title", "description", "status", 
-            "start_date", "end_date", "visibility", "is_deleted", "created_at"
+            "id", "user", "title", "description", "status", "start_date", 
+            "end_date", "visibility", "estimated_project_hours", "is_deleted", "created_at"
         ]
         
     def get_user(self, obj):
@@ -49,7 +49,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         # ensure visibility is private if project description, 
         # start date and end date are not provided
 
-        if not "description" in attrs.keys() or not "start_date" in attrs.keys() or not "end_date" in attrs.keys():
+        if not "description" in attrs.keys() or not "start_date" in attrs.keys() or not "end_date" in attrs.keys() or not "estimated_project_hours" in attrs.keys():
             attrs["visibility"] = "private"
 
         if "end_date" in attrs.keys() and "start_date" in attrs.keys():
@@ -151,6 +151,43 @@ class ProjectTeamInvitationSerializer(serializers.ModelSerializer):
     
     def get_user(self, obj):
         return obj.user.email
+    
+
+class ProjectMatchScoresSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ProjectMatchScores
+        fields = ["id", "project", "user", "score", "created_at"]
+
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project!")
+        
+        return value
+    
+    def validate_user(self, value):
+        if not UserAccount.objects.filter(id=value.id, role=Role.RA).exists():
+            raise serializers.ValidationError("Invalid user!")
+        
+        return value
+    
+    def validate_score(self, value):
+        if value < 0 or value > 100:
+            raise serializers.ValidationError("Invalid score!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if ProjectMatchScores.objects.filter(project=attrs["project"], user=attrs["user"]).exists():
+            raise serializers.ValidationError("You have already matched with this project!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project"] = instance.project.title
+        representation["user"] = instance.user.email
+        return representation
 
 
 class MilestoneSerializer(serializers.ModelSerializer):

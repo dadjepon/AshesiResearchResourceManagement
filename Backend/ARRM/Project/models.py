@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from datetime import timedelta
 
 from Account.models import UserAccount
 from Profile.models import StudyArea
@@ -34,6 +36,7 @@ class Project(models.Model):
         - start_date (DateField): the project's starting date
         - end_date (DateField): the project's expected ending date
         - visibility (CharField): the project's visibility (public, private)
+        - estimated_project_hours (FloatField): the project's estimated weekly hours
         - is_deleted (BooleanField): whether the project is deleted or not
         - created_at (DateTimeField): the project's creation date
     """
@@ -45,6 +48,7 @@ class Project(models.Model):
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
     visibility = models.CharField(max_length=20, default="private", choices=[("public", "public"), ("private", "private")])
+    estimated_project_hours = models.FloatField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -114,6 +118,37 @@ class ProjectTeamInvitation(models.Model):
 
     def __str__(self):
         return f"{self.project.title} -> {self.user.email}"
+
+
+class ProjectMatchScores(models.Model):
+    """
+    defines attributes for a ProjectMatch class
+
+    Attributes:
+        - project (Project): the project
+        - user (UserAccount): the user's account
+        - score (IntegerField): the user's score
+        - created_at (DateTimeField): the match's creation date
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.project.title} -> {self.user.email} ({self.score}%)"
+    
+    @classmethod
+    def clean_matches(cls, project):
+        """
+        cleans up project matches after 24 hours of match request
+
+        Args:
+            - project (Project): the project
+        """
+
+        ProjectMatchScores.objects.filter(project=project, created_at__lte=timezone.now() - timedelta(hours=24)).delete()
 
 
 class Milestone(models.Model):
