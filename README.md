@@ -1,5 +1,6 @@
-# AshesiResearchResourceManagement
-AshesiResearchResourceManagement
+# ARRM - Research Resource Management System
+
+ARRM is a web application designed to facilitate the matching of Research Assistants to faculty members.
 
 ## System Architectures
 
@@ -21,11 +22,6 @@ AshesiResearchResourceManagement
 
 - **Reason:** Build a 3-tier architecture with components that can be built iteratively and independently. This allows users to benefit from implemented functionalities while developers make incremental updates to add other features to the platform.
 
-## Frontend:
-# ARRM - Research Resource Management System
-
-ARRM is a web application designed to facilitate the matching of Research Assistants to faculty members.
-
 ## Frontend Technology: React JS Framework
 
 ### Key Features of React JS:
@@ -35,11 +31,9 @@ ARRM is a web application designed to facilitate the matching of Research Assist
 - **Vast Ecosystem:** Benefit from numerous libraries, tools, and resources within the React ecosystem, with an active community providing support, tutorials, and updates.
 - **CSS Integration:** Use CSS for styling React JS components, employing Tailwind CSS and CSS to meet software requirements and functionalities.
 
-# Research Resource Management System (ARRM) - Backend Overview
+## Backend Technology: Django and Django Rest Framework
 
-## Django and Django Rest Framework
-
-In crafting the Ashesi Research Resource Management System (ARRM), the selection of technology stands as a critical factor influencing the system's robustness, scalability, and maintainability. Embracing the Model-View-Controller (MVC) architecture for effective separation of concerns, our choice centered on Django and Django Rest Framework (DRF), each contributing significantly to distinct aspects of our system.
+In developing the Ashesi Research Resource Management System (ARRM), the selection of technology stands as a critical factor influencing the system's robustness, scalability, and maintainability. Embracing the Model-View-Controller (MVC) architecture for effective separation of concerns, our choice centered on Django and Django Rest Framework (DRF), each contributing significantly to distinct aspects of our system.
 
 ### Django for Backend Structure and ORM
 
@@ -59,4 +53,4 @@ Both Django and DRF benefit from active and vibrant communities. Regular updates
 
 ## MySQL
 
-MySQL stands as our chosen backend database for its proven reliability and stability, forming a secure foundation for storing critical data in the Ashesi Research Resource Management System. MySQL's scalability is vital as our application grows, providing the capability to handle increased data loads and larger datasets efficiently. The seamless integration of MySQL with the Django framework simplifies development and maintenance processes. Leveraging the active community support of MySQL ensures that our development team has access to a wealth of resources, documentation, and assistance. Furthermore, MySQL's robust support for transactions aligns well with the relational nature of our data, emphasizing data integrity and consistency. Overall, MySQL emerged as a dependable and well-supported choice for our backend database, enhancing the efficiency and performance of our system.
+MySQL stands as our chosen backend database for its proven reliability and stability, forming a secure foundation for storing critical data in the Ashesi Research Resource Management System. MySQL's scalability is vital as our application grows, providing the capability to handle increased data loads and larger datasets efficiently. The seamless integration of MySQL with the Django framework simplifies development and maintenance processes. Furthermore, MySQL's robust support for transactions (grouping of one or more SQL statements that interact with a database) aligns well with the relational nature of our data, emphasizing data integrity and consistency. Overall, MySQL emerged as a dependable and well-supported choice for our backend database, enhancing the efficiency and performance of our system.
