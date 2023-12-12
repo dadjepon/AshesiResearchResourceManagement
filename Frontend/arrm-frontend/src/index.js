@@ -27,7 +27,6 @@ import InvitedProjectsPage from './pages/InvitedProjectsPage';
 import RequestedProjectsPage from './pages/RequestedProjectsPage';
 import ViewProjectPage from './pages/ViewProjectPage';
 import UserProfilePage from './pages/UserProfilePage';
-
 import HomePage from './pages/HomePage';
 import './App.css';
 
