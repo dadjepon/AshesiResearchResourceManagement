@@ -331,14 +331,10 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
     
 
 class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
-    reviewer = serializers.SerializerMethodField("get_reviewer")
 
     class Meta:
         model = ProjectTaskFeedback
-        fields = ["id", "project_task", "reviewer", "target_member", "feedback", "created_at"]
-
-    def get_reviewer(self, obj):
-        return self.context["request"].user.email
+        fields = ["id", "project_task", "target_member", "feedback", "created_at"]
 
     def validate_project_task(self, value):
         if not ProjectTask.objects.filter(id=value.id).exists():
