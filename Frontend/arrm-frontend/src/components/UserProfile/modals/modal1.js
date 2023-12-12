@@ -1,9 +1,15 @@
 import React, { useState, useRef } from "react";
-import '../styles/modal1.css'; // Import your modal1.css file
+import "./modal1.css";
 
-function Modal1() {
+function Modal1(
+  // {isOpen, onClose}
+  ) {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
+
+  // if (!isOpen) {
+  //   return null;
+  // }
 
   const handleUpload = (e) => {
     setFile(URL.createObjectURL(e.target.files[0]));
@@ -13,14 +19,15 @@ function Modal1() {
     fileInputRef.current.click();
   };
 
-  const logo = '/images/Import pdf.png';  
-  const logo_2 = '/images/background_image.png';
+  const logo = "/images/Import pdf.png";
+  const logo_2 = "/images/background_image.png";
 
   return (
     <div className="modal1_container">
       <div className="back-container">
         <img src={logo_2} alt="back Logo" className="back-image" />
       </div>
+      
       <div className="preview-box">
         {/* Add the text inside the preview box as a link */}
         <a href="#!" className="upload-text" onClick={openFileInput}>
@@ -39,12 +46,10 @@ function Modal1() {
           ref={fileInputRef}
         />
         {/* Button to trigger file input */}
-        <button className="upload-button">
-          Upload
-        </button>
+        <button className="upload-button">Upload</button>
       </div>
     </div>
   );
-};
+}
 
 export default Modal1;

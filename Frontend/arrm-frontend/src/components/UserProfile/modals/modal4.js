@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
-import '../styles/modal4.css'; // Import the external CSS file
+import "./modal4.css";
 
-const Modal4 = () => {
+const Modal4 = (
+  // {isOpen, onClose}
+  ) => {
   const [degreeType, setDegreeType] = useState('');
   const [graduationYear, setGraduationYear] = useState('');
   const [major, setMajor] = useState('');
@@ -10,6 +12,10 @@ const Modal4 = () => {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  
+  // if (!isOpen) {
+  //   return null;
+  // }
   const handleUpload = (e) => {
     setFile(URL.createObjectURL(e.target.files[0]));
   };

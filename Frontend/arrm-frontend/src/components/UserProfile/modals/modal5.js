@@ -1,10 +1,15 @@
 import React, { useState, useRef } from 'react';
-import '../styles/modal5.css'; // Import your modal5.css file
+import "./modal5.css";
 
-function Modal5() {
+function Modal5(
+  // {isOpen, onClose}
+  ){
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  // if (!isOpen) {
+  //   return null;
+  // }
   const handleUpload = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
