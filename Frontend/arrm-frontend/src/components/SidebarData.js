@@ -2,7 +2,7 @@ export const SidebarData = [
     {
         title:"Research Projects",
         icon: "/icons/all_projects.png",
-        link:"/",
+        link:"/home",
     },
     
     {

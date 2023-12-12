@@ -1,0 +1,106 @@
+/* Tailwind CSS styles */
+
+.modal1_container {
+    position: absolute;
+    width: 800px;
+    height: 650px;
+    left: 50%; /* Adjust horizontal position as needed */
+    top: 50%; /* Adjust vertical position as needed */
+    transform: translate(-50%, -50%);
+    background: white;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  }
+  
+  .upload-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+  
+  .upload-button {
+    position: absolute;
+    top: calc(50% + 200px); /* Adjust the distance from the top as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 50px;
+    background: #923d41;
+    border: 1px solid #923d41;
+    border-radius: 10px;
+    color: #ffffff;
+    cursor: pointer;
+  }
+  
+  .preview-box {
+    position: relative; /* Change position to relative */
+    width: 400px;
+    height: 200px;
+    background: #d9d9d9;
+    top: calc(40% + 20px); /* Adjust the distance from the top as needed */
+    left: 25%;
+    border: 1px solid #923d41;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Ensure the content doesn't overflow */
+  }
+  
+  
+  /* Hover effects */
+  
+  .upload-button:hover {
+    background: #6c2b37;
+    border: 1px solid #6c2b37;
+  }
+  
+  .back-container {
+    position: absolute;
+    width: 150px; /* Set the width as needed */
+    height: 147.12px; /* Set the height as needed */
+    left: calc(40% + 1px); /* Adjust left positioning to shift the logo right */
+    top: 50px; /* Adjust the top positioning */
+  }
+  
+  
+  
+  .cam-image {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: calc(8% - 50px/2 + 169px);
+    top: calc(20% - 50px/2 + 40.5px); 
+  }
+  
+  
+  .back-image {
+    width: 100%; /* To fill the container */
+    height: auto; /* To maintain aspect ratio */
+  }
+  
+  .upload-text {
+    position: absolute;
+    width: 223px;
+    height: 19px;
+    left: 100px;
+    top: calc(35% - 19px/2 + 60px);
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+    color: #837B7B;
+  }
+
+
+  .uploaded-image {
+    width: 100%; /* Ensure the image fills the container */
+    height: 100%; /* Ensure the image fills the container */
+    object-fit: cover; /* Maintain aspect ratio and cover the entire box */
+  }

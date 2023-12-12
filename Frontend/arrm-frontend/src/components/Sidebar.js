@@ -21,12 +21,11 @@ function Sidebar() {
         userProfilePicture: "icons/user_profile_pic.jpg",
         userName: "Bright Sithole",
       });
-    }, 1000); 
-  }, []); 
+    }, 1000);
+  }, []);
 
   return (
     <div className={isExpanded ? "sliding-div" : "sliding-div-NX"}>
-      
       <div
         className={
           isExpanded
@@ -37,17 +36,20 @@ function Sidebar() {
         <div className="nav-upper">
           <div className="nav-heading ">
             {isExpanded && (
-              <>
-                <div className="user-profile">
+              <div className="user-profile">
+                <Link className="profile-link" to={`/profile}`}>
                   <img
                     src={userData.userProfilePicture}
                     alt="user-profile"
                     className="user-profile-picture"
                   />
-                  <p className="user-name">{userData.userName}</p>
-                  <hr />
-                </div>
-              </>
+                </Link>
+                {/* <Link to={`/profile/${userData.userId}`} className="user-name"> */}
+                <Link to={`/profile`} className="user-name">
+                  {userData.userName}
+                </Link>
+                <hr />
+              </div>
             )}
           </div>
         </div>
