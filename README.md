@@ -54,3 +54,6 @@ Both Django and DRF benefit from active and vibrant communities. Regular updates
 ## MySQL
 
 MySQL stands as our chosen backend database for its proven reliability and stability, forming a secure foundation for storing critical data in the Ashesi Research Resource Management System. MySQL's scalability is vital as our application grows, providing the capability to handle increased data loads and larger datasets efficiently. The seamless integration of MySQL with the Django framework simplifies development and maintenance processes. Furthermore, MySQL's robust support for transactions (grouping of one or more SQL statements that interact with a database) aligns well with the relational nature of our data, emphasizing data integrity and consistency. Overall, MySQL emerged as a dependable and well-supported choice for our backend database, enhancing the efficiency and performance of our system.
+
+## Postman Collection:
+Find the link to the postman collection (here)[https://arrm-ashesi.postman.co/workspace/Team-Workspace~8f8d231b-922d-40c2-8a28-e0a1cdc9d842/collection/31703248-139b06bf-29be-47ab-bd12-7b239f21657a?action=share&creator=31703248]
