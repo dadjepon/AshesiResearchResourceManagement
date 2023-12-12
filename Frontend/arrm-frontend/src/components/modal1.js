@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import '../styles/modal1.css'; // Import your modal1.css file
 
-function Modal2() {
+function Modal1() {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -13,7 +13,7 @@ function Modal2() {
     fileInputRef.current.click();
   };
 
-  const logo = '/images/Camera.png';  
+  const logo = '/images/Import pdf.png';  
   const logo_2 = '/images/background_image.png';
 
   return (
@@ -24,7 +24,7 @@ function Modal2() {
       <div className="preview-box">
         {/* Add the text inside the preview box as a link */}
         <a href="#!" className="upload-text" onClick={openFileInput}>
-          Upload a profile picture
+          Upload your CV
         </a>
         {file && <img src={file} alt="Profile" />}
         <img src={logo} alt="camera Logo" className="cam-image" />
@@ -47,4 +47,4 @@ function Modal2() {
   );
 };
 
-export default Modal2;
+export default Modal1;

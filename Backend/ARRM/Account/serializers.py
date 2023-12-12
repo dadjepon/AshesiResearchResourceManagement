@@ -1,9 +1,12 @@
+from math import e
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from .models import UserAccount, Status, Role, TokenBlacklist
 from .helper import EMAIL_REGEX, PASSWORD_REGEX
 import re
+from Profile.models import Faculty, ResearchAssistant
+from Profile.serializers import FacultySerializer, ResearchAssistantSerializer
 
 
 class AccountRegistrationSerializer(serializers.ModelSerializer):
@@ -115,6 +118,26 @@ class UserAccountSerializer(serializers.ModelSerializer):
             "id", "firstname", "lastname", "email",
             "mobile_number", "role", "nationality", "last_login"
         ]
+
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+
+    #     # extend Faculty or ResearchAssistant representation
+    #     if instance.role == Role.FACULTY:
+    #         if Faculty.objects.filter(user=instance).exists():
+    #             extended_rep = FacultySerializer(Faculty.objects.get(user=instance), context=self.context).data
+    #         else:
+    #             extended_rep = {}
+    #     elif instance.role == Role.RA:
+    #         if ResearchAssistant.objects.filter(user=instance).exists():
+    #             extended_rep = ResearchAssistantSerializer(ResearchAssistant.objects.get(user=instance), context=self.context).data
+    #         else:
+    #             extended_rep = {}
+    #     else:
+    #         extended_rep = {}
+
+    #     representation.update(extended_rep)
+    #     return representation
 
 
 class AccountLoginSerializer(TokenObtainPairSerializer):
