@@ -88,7 +88,10 @@ class AccountLogin(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         
         if serializer.is_valid() and response.status_code == status.HTTP_200_OK:
-                        
+            user = UserAccount.objects.get(email=request.data["email"]) # type: ignore
+            if not user.is_active:
+                return Response({"error": "Account is disabled. Contact admin!"}, status=status.HTTP_400_BAD_REQUEST)
+            
             response.set_cookie(
                 key="refresh_token",
                 value=response.data["refresh"], # type: ignore
@@ -105,7 +108,6 @@ class AccountLogin(TokenObtainPairView):
             )
 
             # update user last login
-            user = UserAccount.objects.get(email=request.data["email"]) # type: ignore
             user.last_login = timezone.now()
             user.save()
         else:
@@ -125,7 +127,7 @@ class AccountView(APIView):
 
         serializer = UserAccountSerializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 
 class ChangePasswordView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
@@ -137,7 +139,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         """
 
         partial = kwargs.pop("partial", False)
-        instance = self.get_object()
+        instance = request.user
         serializer = ChangePasswordSerializer(instance, data=request.data, partial=partial, context={"request": request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
