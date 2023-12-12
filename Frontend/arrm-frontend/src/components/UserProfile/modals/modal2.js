@@ -1,9 +1,15 @@
 import React from 'react';
-import '../styles/modal2.css'; // Import the external CSS file
+import "./modal2.css";
+; // Import the external CSS file
 
-const Modal2 = () => {
+const Modal2 = (
+    // {isOpen, onClose}
+    ) => {
     const logo_2 = '/images/background_image.png';
 
+    // if (!isOpen) {
+    //     return null;
+    //   }
     const handleSubmit = (event) => {
         event.preventDefault();
         // Handle form submission logic here

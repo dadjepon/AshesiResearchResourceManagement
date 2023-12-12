@@ -1,13 +1,18 @@
 import React, { useState, useRef } from 'react';
-import '../styles/modal3.css'; // Import the external CSS file
+import "./modal3.css";
 
-const Modal3 = () => {
+const Modal3 = (
+  // {isOpen, onClose}
+  ) => {
     const logo_2 = '/images/background_image.png';
     const logo = '/images/Import Pdf.png'
 
     const [file, setFile] = useState(null);
     const fileInputRef = useRef(null);
   
+    // if (!isOpen) {
+    //   return null;
+    // }
     const handleUpload = (e) => {
       setFile(URL.createObjectURL(e.target.files[0]));
     };
@@ -70,7 +75,9 @@ const Modal3 = () => {
           ref={fileInputRef}
         />
         {/* Button to trigger file input */}
-        <button className="upload-modal3-button">
+        <button className="upload-modal3-button"
+        // onClick={take info to database !}
+        >
           Add a Sample
         </button>
       </div>

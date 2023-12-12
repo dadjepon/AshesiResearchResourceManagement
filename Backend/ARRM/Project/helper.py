@@ -1,15 +1,16 @@
-from .models import ProjectTask, ProjectTeam
-from Profile.models import ResearchAssistant, ResearchAssistantAvailability
+from .models import ProjectTask, ProjectTeam, Milestone
+from Profile.models import ResearchAssistant, ResearchAssistantAvailability, Degree
 
 
 REQUIRED_WEEKLY_HOURS = 40
+TOTAL_MATCH_SCORE = 5
 
-MILESTONE_DICT = {
-    "project_planning": "Project Planning",
-    "literature_review": "Literature Review",
-    "data_collection_and_processing": "Data Collection and Processing",
-    "dissemination": "Dissemination"
-}
+# MILESTONE_DICT = {
+#     "project_planning": "Project Planning",
+#     "literature_review": "Literature Review",
+#     "data_collection_and_processing": "Data Collection and Processing",
+#     "dissemination": "Dissemination"
+# }
 
 PROJECT_MILESTONE_TEMPLATE_DICT = {
     "project_planning": [
@@ -43,6 +44,16 @@ PROJECT_MILESTONE_TEMPLATE_DICT = {
         "Publication of manuscript"
     ]
 }
+
+def get_milestone_dict():
+    milestones = Milestone.objects.all()
+    MILESTONE_DICT = dict()
+
+    for milestone in milestones:
+        milestone_name = milestone.name.lower().replace(" ", "_")
+        MILESTONE_DICT[milestone_name] = milestone.name
+
+    return MILESTONE_DICT
 
 def get_cummulative_task_hours(project):
     cummulative_task_hours = 0
@@ -103,3 +114,55 @@ def get_available_ras(ra_available_hours, project, assigned_project_hours):
             available_ras.append(ra_id)
 
     return available_ras
+
+def compute_study_area_match_score(ra, project_study_areas):
+    matching_score = 0
+    total_score = 0
+    study_areas = set(interest["study_area"] for interest in ra["interests"])
+
+    for area in project_study_areas:
+        if area in study_areas:
+            matching_score += 1
+        total_score += 1
+
+    return (matching_score / total_score) * 3
+
+def compute_interest_match_score(ra, project):
+    matching_score = 0
+    total_score = 0
+
+    interests = set(interest["name"] for interest in ra["interests"])
+    interests_set = set()
+
+    for interest in interests:
+        interest_set = set(interest.lower().split())
+        interests_set = interests_set.union(interest_set)
+    
+    for interest in interests_set:
+        if interest in project.description.lower():
+            matching_score += 1
+        
+        if interest in project.title.lower():
+            matching_score += 1
+
+        total_score += 2
+
+    return (matching_score / total_score) * 1
+
+def compute_degree_match_score(ra, project):
+    matching_score = 0
+    total_score = 0
+
+    faculty_degrees = list(degree.major for degree in Degree.objects.filter(user=project.user))
+
+    if faculty_degrees:
+        ra_degrees = list(degree["major"] for degree in ra["degrees"]) 
+        for degree in ra_degrees:
+            if degree in faculty_degrees:
+                matching_score += 1
+                total_score += 1
+        
+        if total_score > 0:
+            return (matching_score / total_score) * 1
+
+    return 0

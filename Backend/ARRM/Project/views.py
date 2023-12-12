@@ -11,12 +11,15 @@ from .models import (
     ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestoneTemplate, 
     ProjectMilestone, ProjectTask, ProjectTaskFeedback)
 from .serializers import (
-    ProjectSerializer, ProjectMatchScoresSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, MilestoneSerializer, 
-    ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, ProjectTaskFeedbackSerializer)
-from .helper import MILESTONE_DICT, PROJECT_MILESTONE_TEMPLATE_DICT, get_cummulative_task_hours, get_ra_available_hours, get_available_ras
+    ProjectSerializer, ProjectMatchScoresSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, 
+    MilestoneSerializer, ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, ProjectTaskFeedbackSerializer)
+from .helper import (
+    PROJECT_MILESTONE_TEMPLATE_DICT, TOTAL_MATCH_SCORE, compute_degree_match_score, compute_interest_match_score, 
+    compute_study_area_match_score, get_cummulative_task_hours, get_milestone_dict, get_ra_available_hours, get_available_ras
+)
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role, UserAccount
-from Profile.models import ResearchAssistant, StudyArea
+from Profile.models import Faculty, ResearchAssistant, StudyArea, Degree
 from Profile.serializers import ResearchAssistantSerializer
 
 
@@ -453,7 +456,6 @@ class DeleteProjectPermanentlyView(APIView):
         
         if not project.is_deleted: # type: ignore
             return Response({"error": f"{project.title} is not in the trash!"}, status=status.HTTP_400_BAD_REQUEST)
-        print(request.user == project.user, request.user.is_staff)
         if project.user != request.user:
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -461,71 +463,90 @@ class DeleteProjectPermanentlyView(APIView):
         return Response({"success": "Project deleted permanently!"}, status=status.HTTP_200_OK)
     
 
-# class ProjectMatchScoresView(APIView):
-#     permission_classes = [IsAuthenticated, IsBlacklistedToken]
+class ProjectMatchScoresView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
-#     def post(self, request, project_id):
-#         try:
-#             project = Project.objects.get(id=project_id)
-#         except Project.DoesNotExist:
-#             return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+    def post(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
         
-#         if project.user != request.user:
-#             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        if project.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
-#         # delete existing project matching scores before computing new ones
-#         ProjectMatchScores.objects.filter(project=project).delete()
+        # delete existing project matching scores before computing new ones
+        ProjectMatchScores.objects.filter(project=project).delete()
         
-#         # ensure the project details are complete
-#         if not project.description or not project.start_date or not project.end_date:
-#             return Response({"error": "Project details are not complete. Project description, start date and end date are required to complete project!"}, status=status.HTTP_400_BAD_REQUEST)
+        # ensure the project details are complete
+        if not project.description or not project.start_date or not project.end_date:
+            return Response({"error": "Project details are not complete. Project description, start date and end date are required to complete project!"}, status=status.HTTP_400_BAD_REQUEST)
 
-#         # ensure project has study areas
-#         if not ProjectStudyArea.objects.filter(project=project).exists():
-#             return Response({"error": "Project has no study areas! Study areas are required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
+        # ensure project has study areas
+        if not ProjectStudyArea.objects.filter(project=project).exists():
+            return Response({"error": "Project has no study areas! Study areas are required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
 
-#         # ensure estimated weekly hours is not None
-#         if not project.estimated_project_hours:
-#             return Response({"error": "Estimated project hours is required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
+        # ensure estimated weekly hours is not None
+        if not project.estimated_project_hours:
+            return Response({"error": "Estimated project hours is required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
         
-#         # retrieve all project tasks and compute required project hours
-#         assigned_project_hours = get_cummulative_task_hours(project)
+        # retrieve all project tasks and compute required project hours
+        assigned_project_hours = get_cummulative_task_hours(project)
 
-#         # retrieve RAs and compute available hours
-#         ra_available_hours = get_ra_available_hours(project)
-#         available_ras = get_available_ras(ra_available_hours, project, assigned_project_hours)
+        # retrieve RAs and compute available hours
+        ra_available_hours = get_ra_available_hours(project)
+        available_ras = get_available_ras(ra_available_hours, project, assigned_project_hours)
 
-#         # retrieve project study areas
-#         project_study_areas = ProjectStudyArea.objects.filter(project=project)
-#         project_study_areas = [project_study_area.study_area for project_study_area in project_study_areas]
+        # retrieve project study areas
+        project_study_areas = ProjectStudyArea.objects.filter(project=project)
+        project_study_areas = [project_study_area.study_area for project_study_area in project_study_areas]
         
-#         # retrieve RA profile; interests, study areas, degrees
-#         ra_matching_scores = dict()
-#         for ra_id in available_ras:
-#             ra = ResearchAssistantSerializer(ResearchAssistant.objects.get(user__id=ra_id), context={"request": request}).data
+        # retrieve RA profile, interests, study areas, degrees, and compute matching scores
+        ra_matching_scores = dict()
+        for ra_id in available_ras:
+            ra = ResearchAssistantSerializer(ResearchAssistant.objects.get(user__id=ra_id), context={"request": request}).data
+            matching_score = 0  # (OUT OF 5)
+
+            # compute study area matching score (OUT OF 3)
+            matching_score += compute_study_area_match_score(ra, project_study_areas)
             
-#             # compute matching score
-#             matching_score = 0
-#             total_score = 0
-#             study_areas = set(interest["study_area"] for interest in ra["interests"])
-#             for area in project_study_areas:
-#                 if area in study_areas:
-#                     matching_score += 1
-#                 total_score += 1
+            # compute interest to project title & description matching score (OUT OF 1)
+            matching_score += compute_interest_match_score(ra, project)
 
-#             interests = set(interest["name"] for interest in ra["interests"])
-#             title_details = set(project.title.split(" "))
-#             print(interests)
-#             print(title_details)
+            # compute RA and Faculty degree matching score (OUT OF 1)
+            matching_score += compute_degree_match_score(ra, project)           
 
-#             print(matching_score)
-#             print(total_score)
+            ra_matching_scores[ra_id] = matching_score
 
-#         # save match score above 0
+        # order the dictionary in descending order based on the 
+        # matching scores and store the first five
+        ra_matching_scores = dict(sorted(ra_matching_scores.items(), key=lambda item: item[1], reverse=True)[:5])
+        
+        for ra_id, matching_score in ra_matching_scores.items():
+            project_match_score = ProjectMatchScores(
+                project=project,
+                user=UserAccount.objects.get(id=ra_id),
+                score=(matching_score / TOTAL_MATCH_SCORE) * 100
+            )
+            project_match_score.save()
+        
+        return Response(ProjectMatchScoresSerializer(ProjectMatchScores.objects.filter(project=project), many=True).data, status=status.HTTP_200_OK)
 
-#         # return match score
-#         return Response({"success": "Project matching scores computed successfully!", "ra_hours": ra_available_hours}, status=status.HTTP_200_OK)
-    
+
+class RetrieveProjectMatchScoresView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+
+        if project.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        return Response(ProjectMatchScoresSerializer(ProjectMatchScores.objects.filter(project=project), many=True).data, status=status.HTTP_200_OK)
+
 
 class AddMilestoneView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
@@ -596,7 +617,7 @@ class AddProjectTaskView(APIView):
 
         for milestone, tasks in tasks_dict.items():
             # create project milestone
-            project_milestone = AddProjectTaskView.create_project_milestone(project, MILESTONE_DICT[milestone])
+            project_milestone = AddProjectTaskView.create_project_milestone(project, milestone)
             if project_milestone is not None:
                 # create project tasks
                 for task in tasks:
@@ -633,7 +654,11 @@ class AddProjectTaskView(APIView):
     @staticmethod
     def create_project_milestone(project, milestone):
         try:
-            milestone = Milestone.objects.get(name=milestone)
+            MILESTONE_DICT = get_milestone_dict()
+            if milestone in MILESTONE_DICT.keys():
+                milestone = Milestone.objects.get(name=MILESTONE_DICT[milestone])
+            else:
+                milestone = Milestone.objects.create(name=milestone)
         except Milestone.DoesNotExist:
             return None
 
