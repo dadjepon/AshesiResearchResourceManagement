@@ -1,15 +1,19 @@
 /* Tailwind CSS styles */
 
 .modal1_container {
-  position: absolute;
-  width: 800px;
-  height: 650px;
-  left: 50%; /* Adjust horizontal position as needed */
-  top: 50%; /* Adjust vertical position as needed */
+  position: fixed;
+  width: 80%; /* Adjust the width as needed */
+  max-width: 800px; /* Set a maximum width if desired */
+  height: 80vh; /* Adjust the height as needed */
+  left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
   background: white;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  z-index: 999; /* Ensure the modal is on top of other content */
+  overflow-y: auto; /* Allow scrolling within the modal if its content exceeds the height */
 }
+
 
 .upload-input {
   position: absolute;
@@ -37,7 +41,7 @@
 }
 
 .preview-box {
-  position: relative; /* Change position to relative */
+  position: fixed; /* Change position to relative */
   width: 400px;
   height: 200px;
   background: #d9d9d9;
