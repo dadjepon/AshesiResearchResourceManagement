@@ -302,7 +302,7 @@
 
 
 .writing-samples{
-  margin-bottom: 20px;
+  margin-bottom: 23px;
   display: flex;
   flex-direction: row;
 }
@@ -342,47 +342,46 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  align-content: center;
   width: 150vh;
-  height: 40vh;
+  height: 30vh;
   margin-bottom: 40px;
+  padding-top: 0px;
 }
 
 /* Styles for smaller screens */
 @media (max-width: 768px) {
   .info-box {
     flex-direction: column;
-    width: 80vw; /* Adjust the width as needed */
+    width: 80vw; 
   }
 }
 
-/* Rest of your CSS remains the same */
 .info-box .slider-arrow {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 10px;
-  border: 0.2px solid #ffffff60;
+  border: 0.2px solid var(--ash-color);
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
   background-color: var(--ash-color);
-  width: 2.5vh;
-  height: 2.5vh;
+  width: 5vh;
+  height: 5vh;
   border-radius: 50%;
-}
-
-.info-box .slider-arrow img {
-  width: 3vh;
-  height: 3vh;
 }
 
 .individual-box .add-info-category {
   padding: 10px;
   padding-left: 15px;
   padding-right: 15px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+
   border-radius: 90px;
   background-color: #fff;
   margin: 0;
   align-self: center;
-  border: rgb(10, 9, 9);
+  border: 0.2px solid #4f5663;
 }
 
 
@@ -398,31 +397,24 @@
     width: 140px;
   }
 
+
   
   .info-box .individual-box {
     display: flex;
     align-items: center;
     flex-direction: column;
-    width: 27vh;
-    height: 25vh;
+    width: 29vh;
+    height: 26vh;
     background-color: rgba(250, 250, 250, 0.678);
     padding: 15px;
     margin :4vh;
     border: 0.2px solid #0000002f;
     box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-
     border-radius: 5px;
-    margin-top: auto; /* Ensure the button stays at the bottom */
+    margin-top: auto; 
   }
   
 
-
-  .individual-box p {
-    font-size: 0.8em;
-    font-weight: 100;
-    color: var(--ash-color);
-  }
-  
   .individual-box button {
     background-color: var(--ash-color);
     color: white;
@@ -445,3 +437,51 @@
 
   }
   
+ 
+@media (max-width: 768px) {
+  .main-content {
+    margin-top: 40px; /* Adjust margin for smaller screens */
+  }
+
+  .upload-info {
+    flex-direction: column; /* Change to column layout for smaller screens */
+    width: 100%;
+  }
+
+  .upload-info .add-pic img {
+    width: 100%; /* Make the image responsive for smaller screens */
+    height: auto;
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .upload-info .user-cv {
+    margin-left: 0;
+    margin-top: 20px; /* Adjust top margin for smaller screens */
+  }
+
+  .upload-info .add-bio {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .info-box {
+    width: 100%;
+    flex-direction: column;
+    height: auto;
+    margin-bottom: 20px; /* Adjust margin for smaller screens */
+  }
+
+  .info-box .slider-arrow {
+    width: 5vw; /* Adjust width for smaller screens */
+    height: 5vw;
+  }
+
+  .info-box .individual-box {
+    width: 80vw; /* Adjust width for smaller screens */
+    height: auto;
+    margin: 2vh;
+  }
+}
+
+/* ---------------------modal container ---------------- */

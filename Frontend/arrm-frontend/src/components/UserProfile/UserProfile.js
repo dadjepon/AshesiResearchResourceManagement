@@ -147,7 +147,6 @@ function UserProfile() {
 
   return (
     <>
-      <div className="non-expanding"></div>
 <div className="profile-content">
       <div className="upload-info">
         <div className="add-pic">
@@ -319,9 +318,9 @@ function UserProfile() {
           </>
         )}
       </div>
+      <br></br>
       <h3>Complete your profile: </h3>
       <div className="more-info">
-        {/* same here, just pass the values on the categorycompletion only */}
         <InfoBox
           completionStatus={categoryCompletionStatus}
           activeIndex={activeIndex}
