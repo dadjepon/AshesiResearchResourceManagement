@@ -337,16 +337,26 @@
 }
 /* ----------------InfoBox------------------------ */
 
+/* Default styles for larger screens */
 .info-box {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  flex-direction: row;
   align-items: center;
-    width: 150vh;
-    height: 40vh;
-    margin-bottom: 40px;
+  width: 150vh;
+  height: 40vh;
+  margin-bottom: 40px;
+}
+
+/* Styles for smaller screens */
+@media (max-width: 768px) {
+  .info-box {
+    flex-direction: column;
+    width: 80vw; /* Adjust the width as needed */
   }
-  
-  .info-box .slider-arrow {
+}
+
+/* Rest of your CSS remains the same */
+.info-box .slider-arrow {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -364,18 +374,18 @@
   height: 3vh;
 }
 
-  .individual-box .add-info-category{
-    padding: 10px;
-    padding-left: 15px;
-    padding-right: 15px;
-    border-radius: 90px;
-    background-color: #fff;
-    margin: 0;
-    align-self: center;
-    border: rgb(10, 9, 9);
-    
+.individual-box .add-info-category {
+  padding: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  border-radius: 90px;
+  background-color: #fff;
+  margin: 0;
+  align-self: center;
+  border: rgb(10, 9, 9);
+}
 
-  }
+
 
   .individual-box p{
     display: flex;

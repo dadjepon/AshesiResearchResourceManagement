@@ -50,8 +50,8 @@ const InfoBox = ({ completionStatus, activeIndex, onPrevClick, onNextClick }) =>
     setNumberCompleted((prev) => prev + 1);
   };
 
-  const startIndex = activeIndex * 3;
-  const endIndex = startIndex + 3;
+  const startIndex = activeIndex * 4;
+  const endIndex = startIndex + 4;
   const currentData = data.slice(startIndex, endIndex);
 
   return (

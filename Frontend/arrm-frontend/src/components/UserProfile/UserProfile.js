@@ -37,7 +37,7 @@ function UserProfile() {
     setActiveIndex((prevIndex) =>
       Math.min(
         prevIndex + 1,
-        Math.ceil(categoryCompletionStatus.length / 3) - 1
+        Math.ceil(categoryCompletionStatus.length / 4) - 1
       )
     );
   };
