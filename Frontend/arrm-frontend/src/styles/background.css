@@ -13,9 +13,10 @@ html, body, #root {
 }
 
 /* Divide the page into two halves */
-.bg-container{
+.biig-container{
   display: flex;
   height: 100%;
+  /* z-index: -1; */
 }
 
 /* Style the left half with a red background */
@@ -80,6 +81,9 @@ html, body, #root {
   border: none;
   color: #000;
   font-size: 30px;
+}
+
+.custom-button:hover{
   cursor: pointer;
 }
 

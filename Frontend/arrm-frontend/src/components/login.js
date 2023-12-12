@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css"; // Import your login.css file
 
 function LoginPage() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const logo = "/images/ARRM_logo.png";
@@ -27,13 +30,12 @@ function LoginPage() {
 
       if (response.ok) {
         const responseData = await response.json();
-
+        console.log(responseData);
         // store the tokens as cookies
         document.cookie = `access_token=${responseData.access}`;
         document.cookie = `refresh_token=${responseData.refresh}`;
 
-        // redirect the user to the dashboard
-        window.location.href = "/dashboard";
+        navigate("/home", { replace: true });
       } else {
         if (response.status === 401) {
           // handle unauthorized error
