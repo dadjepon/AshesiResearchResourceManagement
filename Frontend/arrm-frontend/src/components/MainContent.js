@@ -7,7 +7,12 @@ function MainContent() {
   
   var time = "Thursday, Nov 23, 2002";
   var diffTime = true;
-
+  //retreive project data for recent work
+ const getProjectData = async () => {
+    const allProjectData = await fetch("http://127.0.0.1:8000/api/project/get/");
+    const projectData = await allProjectData.json();
+ }
+  
   // Sample project data
   const projectData = [
     {

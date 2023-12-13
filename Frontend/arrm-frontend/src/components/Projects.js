@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/Projects.css";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 
 const Projects = ({ projectData }) => {
   const progressIndicator = [
@@ -9,6 +9,14 @@ const Projects = ({ projectData }) => {
     "/icons/green_dot.png",
     "/icons/red_dot.png",
   ];
+
+const HandleClick = (e) => {
+  console.log(projectData.projectName);
+  let navigate = useNavigate();
+  navigate("/project");
+
+}
+
 
   return (
     <div className="project-task">
@@ -39,7 +47,7 @@ const Projects = ({ projectData }) => {
           : projectData.description}
       </p>
       <Link to={projectData.link}  className="view-btn">  
-      <button>View Project</button>
+      <button onClick={HandleClick}>View Project</button>
       </Link>
       
     </div>
