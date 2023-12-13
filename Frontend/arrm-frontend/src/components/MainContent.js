@@ -1,5 +1,6 @@
 import React from "react";
 import "../styles/MainContent.css";
+import { customFetch } from "../authentication/token_middleware.js"
 import Projects from "./Projects";
 
 function MainContent() {
@@ -10,7 +11,7 @@ function MainContent() {
 
   const getAllProjectsData = async () => {
     try {
-      const allProjectData = await fetch(
+      const allProjectData = await customFetch (
         "http://127.0.0.1:8000/api/project/get/"
       );
       const projectsData = await allProjectData.json();
@@ -22,7 +23,7 @@ function MainContent() {
 
   const getAllTasksData = async () => {
     try {
-      const allTasksData = await fetch(
+      const allTasksData = await customFetch (
         "http://127.0.0.1:8000/api/project/task/get/"
       );
       const tasksData = await allTasksData.json();

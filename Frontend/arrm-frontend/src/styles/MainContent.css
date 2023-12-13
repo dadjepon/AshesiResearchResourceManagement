@@ -120,5 +120,5 @@
 .project-container .message-box, .pending-task .message-box{
   /* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.392); */
   padding: 1em 2em;
-  color: gray;
+  color: var(--ash-color);
 }
