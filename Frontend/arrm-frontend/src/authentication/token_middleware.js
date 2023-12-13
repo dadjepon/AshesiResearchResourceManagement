@@ -1,8 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import AuthenticationError from "./errors.js";
-
-const navigate = useNavigate();
+import { AuthenticationError } from "./errors.js";
 
 function getRefreshToken() {
     const cookies = document.cookie.split('; ');
@@ -23,6 +21,7 @@ function updateAccessToken(newAccessToken) {
 
 function handleRefreshTokenError() {
     // redirect to the login page
+    const navigate = useNavigate();
     navigate('/loginpage', { replace: true });
 }
 
@@ -39,6 +38,7 @@ function getAccessToken() {
 
 function handleUnauthorizedError() {
     // redirect to the login page
+    const navigate = useNavigate();
     navigate('/loginpage', { replace: true });
 }
 

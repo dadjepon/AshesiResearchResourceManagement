@@ -1,3 +1,5 @@
+import React from "react";
+
 class AuthenticationError extends Error {
     constructor(message) {
         super(message);
@@ -5,4 +7,4 @@ class AuthenticationError extends Error {
     }
 }
 
-export default AuthenticationError;
+export default { AuthenticationError };
