@@ -2,8 +2,53 @@ import React from "react";
 import "../styles/MainContent.css";
 import Projects from "./Projects";
 import { TaskData } from "./TaskData";
+import { customFetch } from "../authentication/token_middleware";
+import { useNavigate } from "react-router-dom";
 
 function MainContent() {
+
+  const navigate = useNavigate();
+  
+  function handleUnauthorizedError() {
+    // redirect to the login page
+    navigate('/loginpage', { replace: true });
+  }
+  
+  // fetch user data from api
+  const [userData, setUserData] = React.useState(null);
+  const [isLoading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+ 
+  console.log(userData)
+  React.useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const response = await customFetch('http://127.0.0.1:8000/api/project/get/', {
+          method: 'GET'
+        });
+
+        if (response.ok) {
+          const responseData = await response.json();
+          // dump the response payload into the console
+          setUserData(responseData);
+          console.log(userData)
+        } else {
+          handleUnauthorizedError();
+        }
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserData();
+  }, []);
+
+  React.useEffect(() => {
+    // This useEffect logs the updated userData whenever it changes
+    console.log(userData);
+  }, [userData]);
   
   var time = "Thursday, Nov 23, 2002";
   var diffTime = true;
