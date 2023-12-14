@@ -8,152 +8,190 @@ import { useNavigate } from "react-router-dom";
 function MainContent() {
 
   const navigate = useNavigate();
-  
+
   function handleUnauthorizedError() {
     // redirect to the login page
     navigate('/loginpage', { replace: true });
   }
-  
+
   // fetch user data from api
-  const [userData, setUserData] = React.useState(null);
+  const [projectsData, setProjectsData] = React.useState(null);
   const [isLoading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
- 
-  console.log(userData)
+  const [taskData, setTasks] = React.useState(null);
+
+
+
   React.useEffect(() => {
-    async function fetchUserData() {
+    async function fetchProjectsData() {
       try {
-        const response = await customFetch('http://127.0.0.1:8000/api/project/get/', {
+        var response = await customFetch('http://127.0.0.1:8000/api/project/get/', {
           method: 'GET'
         });
 
         if (response.ok) {
-          const responseData = await response.json();
-          // dump the response payload into the console
-          setUserData(responseData);
-          console.log(userData)
+          try {
+            const responseData = await response.json();
+            setProjectsData(responseData);
+            console.log(responseData);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            const responseData = { errorMessage: "Something went wrong ..." };
+            setProjectsData(responseData);
+          }
         } else {
           handleUnauthorizedError();
         }
-      } catch (error) {
-        setError(error);
+
+
+        // ---------------task data----------------
+        try {
+          var task_response = await customFetch("http://127.0.0.1:8000/api/project/task/get/", {
+            method: 'GET'
+
+          });
+
+          if (task_response.ok) {
+            try {
+              const currTaskData = await task_response.json();
+              setTasks(currTaskData);
+              // console.log(currTaskData);
+            } catch (error) {
+              console.error('Error parsing JSON:', error);
+              const currTaskData = { errorMessage: "Something went wrong ..." };
+              setTasks(currTaskData);
+            }
+          } else {
+            handleUnauthorizedError();
+          }
+        }
+        catch (error) {
+          setError(error);
+          const currTaskData = { errorMessage: "Something went wrong ..." };
+          setTasks(currTaskData);
+        }
       } finally {
         setLoading(false);
       }
     }
 
-    fetchUserData();
+    fetchProjectsData();
   }, []);
 
-  React.useEffect(() => {
-    // This useEffect logs the updated userData whenever it changes
-    console.log(userData);
-  }, [userData]);
-  
+
+
   var time = "Thursday, Nov 23, 2002";
   var diffTime = true;
 
   // Sample project data
-  const projectData = [
-    {
-      projectName: "Berekuso Farming",
-      progress: 80,
-      status: "Ongoing",
-      statusIndicator: 0,
-      pendingTasks: 4,
-      description:
-        "EcoDrone is an ecological monitoring project, drones with advanced sensors to track ...",
-        link:"/view_project",
-    },
-    {
-      projectName: "EcoDrone Tech",
-      progress: 100,
-      status: "Completed",
-      statusIndicator: 1,
-      pendingTasks: 4,
-      description:
-        "EcoDrone is an ecological monitoring project, drones with advanced sensors to track ...",
-        link:"/view_project",
+  // const projectData = [
+  //   {
+  //     projectName: "Berekuso Farming",
+  //     progress: 80,
+  //     status: "Ongoing",
+  //     statusIndicator: 0,
+  //     pendingTasks: 4,
+  //     description:
+  //       "EcoDrone is an ecological monitoring project, drones with advanced sensors to track ...",
+  //       link:"/view_project",
+  //   },
+  //   {
+  //     projectName: "EcoDrone Tech",
+  //     progress: 100,
+  //     status: "Completed",
+  //     statusIndicator: 1,
+  //     pendingTasks: 4,
+  //     description:
+  //       "EcoDrone is an ecological monitoring project, drones with advanced sensors to track ...",
+  //       link:"/view_project",
 
-    },
-    {
-      projectName: "Learning Skills",
-      progress: 40,
-      status: "Ongoing",
-      statusIndicator: 0,
-      pendingTasks: 2,
-      description:
-        "Students find a hard time understanding the concepts; some even forget the content taught over time. How can we change that so all knowledge is preserved and their minds are utilized best?",
-        link:"/view_project",
+  //   },
+  //   {
+  //     projectName: "Learning Skills",
+  //     progress: 40,
+  //     status: "Ongoing",
+  //     statusIndicator: 0,
+  //     pendingTasks: 2,
+  //     description:
+  //       "Students find a hard time understanding the concepts; some even forget the content taught over time. How can we change that so all knowledge is preserved and their minds are utilized best?",
+  //       link:"/view_project",
 
-      },
-    {
-      projectName: "Learning Skills",
-      progress: 40,
-      status: "Ongoing",
-      statusIndicator: 0,
-      pendingTasks: 2,
-      description:
-        "Students find a hard time understanding the concepts; some even forget the content taught over time. How can we change that so all knowledge is preserved and their minds are utilized best?",
-        link:"/view_project",
+  //     },
+  //   {
+  //     projectName: "Learning Skills",
+  //     progress: 40,
+  //     status: "Ongoing",
+  //     statusIndicator: 0,
+  //     pendingTasks: 2,
+  //     description:
+  //       "Students find a hard time understanding the concepts; some even forget the content taught over time. How can we change that so all knowledge is preserved and their minds are utilized best?",
+  //       link:"/view_project",
 
-      },
-  ];
+  //     },
+  // ];
 
   return (
     <>
-      <div className="non-expanding">
-        
-        
-      </div>
+      <div className="non-expanding"></div>
       <div className="main-content">
         <div className="content">
           <div className="recent-work">
             <h4>Recent Work</h4>
             <div className="project-container">
-              {projectData.map((project, index) => (
-                <Projects key={index} projectData={project} />
-              ))}
+              {projectsData && projectsData.length > 0 ? (
+                projectsData.map((project, index) => (
+                  <Projects projectData={project} />
+                ))
+              ) : (
+                <h4 className="message-box">
+                  You do not have any Projects. Go to Browse Project to make requests
+                </h4>
+              )}
             </div>
           </div>
+          {/* -------------PENDING TASKS SECTION--------------- */}
           <div className="pending-task">
             <h4>Pending Tasks</h4>
             <ul className="task-collection">
-              {TaskData.map((val, key) => {
-                if (val.date !== time) {
-                  time = val.date;
-                  diffTime = true;
-                } else {
-                  diffTime = false;
-                }
+              {taskData && Array.isArray(taskData) ? (
+                taskData.map((val, key) => {
+                  if (val.due_date !== time) {
+                    time = val.due_date;
+                    diffTime = true;
+                  } else {
+                    diffTime = false;
+                  }
 
-                return (
-                  <React.Fragment key={key}>
-                    {diffTime && <div className="date">{val.date}</div>}
+                  return (
+                    <React.Fragment key={key}>
+                      {diffTime && <div className="date">{val.due_date}</div>}
 
-                    <div className="task">
-                      <li
-                        key={key}
-                        className="tab"
-                        onClick={() => {
-                          window.location.pathname = val.link;
-                        }}
-                      >
-                        <div className="head">
-                          <h3>{val.projectName}:</h3>
-                          <h3 className="heading">{val.taskHeading} </h3>
-                        </div>
+                      <div className="task">
+                        <li
+                          key={key}
+                          className="tab"
+                          onClick={() => {
+                            // window.location.pathname = val.link;
+                          }}
+                        >
+                          <div className="head">
+                            <h3>{val.project}:</h3>
+                            <h3 className="heading">{val.name} </h3>
+                          </div>
 
-                        <h4>
-                          {val.description.length > 60
-                            ? `${val.description.substring(0, 60)}...`
-                            : val.description}
-                        </h4>
-                      </li>
-                    </div>
-                  </React.Fragment>
-                );
-              })}
+                          <h4>
+                            {val.description && val.description.length > 60
+                              ? `${val.description.substring(0, 60)}...`
+                              : val.description}
+                          </h4>
+                        </li>
+                      </div>
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                <h4 className="message-box" >No Pending Tasks ! </h4>
+              )}
             </ul>
           </div>
         </div>
