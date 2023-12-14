@@ -4,9 +4,12 @@ import InfoBox from "./InfoBox";
 import SchoolIcon from "@mui/icons-material/School";
 import axios from "axios";
 import "./UserProfile.css";
+import Modal2 from "./modals/modal2";
+
 
 function UserProfile() {
   const add_pic = "/icons/add_pic.png";
+  //TODO: API fetch user data
   const [userData, setUserData] = useState({
     userFirstname: "",
     userLastname: "",
@@ -28,6 +31,9 @@ function UserProfile() {
   const [userCVData, setUserCVData] = useState([]);
   const [userDegrees, setUserDegrees] = useState([]);
   const [interestsData, setInterestsData] = useState([]);
+  const [selectedModal, setSelectedModal] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   const handlePrevClick = () => {
     setActiveIndex((prevIndex) => Math.max(prevIndex - 1, 0));
@@ -40,6 +46,25 @@ function UserProfile() {
         Math.ceil(categoryCompletionStatus.length / 4) - 1
       )
     );
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const takeUserInput = (key) => {
+    switch (key) {
+      case 1:
+        console.log("the modal2 is opening now");
+        setSelectedModal(<Modal2 />);
+        break;
+      default:
+        break;
+    }
   };
 
   useEffect(() => {

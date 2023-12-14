@@ -35,10 +35,7 @@ class RetrieveDegreeView(APIView):
             degree = Degree.objects.get(id=degree_id)
         except Degree.DoesNotExist:
             return Response({"error": "Degree not found!"}, status=status.HTTP_404_NOT_FOUND)
-        
-        if degree.user != request.user:
-            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
-        
+                
         serializer = DegreeSerializer(degree, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -171,10 +168,7 @@ class RetrieveWritingSampleView(APIView):
             sample = WritingSample.objects.get(id=sample_id)
         except WritingSample.DoesNotExist:
             return Response({"error": "Writing sample not found!"}, status=status.HTTP_404_NOT_FOUND)
-        
-        if sample.user != request.user:
-            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
-        
+                
         serializer = WritingSampleSerializer(sample, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -485,5 +479,4 @@ class RetrieveFacultyView(APIView):
             return Response({"error": "Faculty not found!"}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = FacultySerializer(faculty, context={"request": request}).to_representation(faculty)
-        print(serializer)
         return Response(serializer, status=status.HTTP_200_OK)
