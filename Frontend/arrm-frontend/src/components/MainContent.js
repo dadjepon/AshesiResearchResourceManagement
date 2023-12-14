@@ -9,29 +9,29 @@ function MainContent() {
   var diffTime = true;
   //retreive project data for recent work
 
-  const getAllProjectsData = async () => {
-    try {
-      const allProjectData = await customFetch (
-        "http://127.0.0.1:8000/api/project/get/"
-      );
-      const projectsData = await allProjectData.json();
-      return projectsData;
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const getAllProjectsData = async () => {
+  //   try {
+  //     const allProjectData = await customFetch (
+  //       "http://127.0.0.1:8000/api/project/get/"
+  //     );
+  //     const projectsData = await allProjectData.json();
+  //     return projectsData;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
-  const getAllTasksData = async () => {
-    try {
-      const allTasksData = await customFetch (
-        "http://127.0.0.1:8000/api/project/task/get/"
-      );
-      const tasksData = await allTasksData.json();
-      return tasksData;
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const getAllTasksData = async () => {
+  //   try {
+  //     const allTasksData = await customFetch (
+  //       "http://127.0.0.1:8000/api/project/task/get/"
+  //     );
+  //     const tasksData = await allTasksData.json();
+  //     return tasksData;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const projectsData = getAllProjectsData();
   const tasksData = getAllTasksData();
