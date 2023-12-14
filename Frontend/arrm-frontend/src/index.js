@@ -22,7 +22,7 @@ import InvitedProjectsPage from './pages/InvitedProjectsPage';
 import RequestedProjectsPage from './pages/RequestedProjectsPage';
 import ViewProjectPage from './pages/ViewProjectPage';
 import UserProfilePage from './pages/UserProfilePage';
-
+import AddProjectPage from './components/AddProject/AddProjectPage';
 import HomePage from './pages/HomePage';
 import './App.css';
 
@@ -45,7 +45,7 @@ ReactDOM.render(
       <Route path="/admin_sem" element={<AdminSem />} />
       <Route path="/admin_sem_RA" element={<AdminSemRA />} />
       <Route path="/ra_delete" element={<RaDelete />} />
-      {/* Add more routes for other components/pages */}
+      <Route path="/add_project" element={<AddProjectPage/>} />
       <Route exact path="/home" element={<HomePage />} />
       <Route path="/inv_projects" element={<InvitedProjectsPage />} />
       <Route path="/req_projects" element={<RequestedProjectsPage />} />

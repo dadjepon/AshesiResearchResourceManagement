@@ -1,0 +1,96 @@
+.form-container-div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .form-field {
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  .project-main-container {
+    background-color: #fffdfd;
+    margin-top: 60px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%; 
+    max-width: 1240px;
+    overflow: hidden;
+    z-index: 0;
+
+  }
+
+  .form-container-div .title{
+    color: var(--ash-color);
+    font-size: 0.9em;
+    font-weight: bold;
+  }
+
+    .form-field .title{
+        color: var(--ash-color);
+        font-size: 0.9em;
+        font-weight: bold;
+    }
+    
+ 
+  .form-field .auto-complete-milestones{
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9em;
+    color: var(--ash-color);
+    font-weight: 600;
+    padding: 12px;
+    margin: 5px;
+    margin-left: 45px;
+    width: 40vh;
+  }
+
+  .form-field .submit-button{
+    background-color: var(--primary-color);
+    font-size: 0.7em;
+    width: 15vh;
+    height: 5vh;
+    margin: 8px;
+  }
+
+  .form-field .cancel-button{
+    background-color: var(--ash-color);
+    font-size: 0.7em;
+    width: 15vh;
+    height: 5vh;
+    margin: 8px;
+  }
+
+
+  
+  .form-field .small-dropdown {
+    margin-top: 10px;
+    width: 45%;
+    max-width: 30em;
+    max-height: fit-content;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .small-dropdown .study-area {
+    flex-basis: calc(50% - 5px);
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    margin-bottom: 5px;
+    padding: 2px;
+    text-align: center;
+  display: inline-block; 
+  word-wrap: break-word; 
+  }
+  
+  .form-field .select-study-area {
+    
+    min-height: 40em;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+  
+  

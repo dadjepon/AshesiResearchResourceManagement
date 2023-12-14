@@ -57,10 +57,10 @@ function MainContent() {
 
   return (
     <>
-      <div className="non-expanding">
+      {/* <div className="non-expanding">
         
         
-      </div>
+      </div> */}
       <div className="main-content">
         <div className="content">
           <div className="recent-work">
