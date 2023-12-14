@@ -1,4 +1,0 @@
-SECRET_KEY = 'django-insecure-#iu@#6(_77%wc%*-qz$ekvpidfmw!qq&=a^k=rfwk*3e#$m1u5'
-
-EMAIL_HOST_USER = 'projectile.webgeeks@gmail.com'
-EMAIL_HOST_PASSWORD = 'mxomcwyelebrdqah'
