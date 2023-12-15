@@ -44,37 +44,41 @@ function MainContent() {
 
 
         // ---------------task data----------------
-        try {
-          var task_response = await customFetch("http://127.0.0.1:8000/api/project/task/get/", {
-            method: 'GET'
-
-          });
-
-          if (task_response.ok) {
-            try {
-              const currTaskData = await task_response.json();
-              setTasks(currTaskData);
-              // console.log(currTaskData);
-            } catch (error) {
-              console.error('Error parsing JSON:', error);
-              const currTaskData = { errorMessage: "Something went wrong ..." };
-              setTasks(currTaskData);
-            }
-          } else {
-            handleUnauthorizedError();
-          }
-        }
-        catch (error) {
-          setError(error);
-          const currTaskData = { errorMessage: "Something went wrong ..." };
-          setTasks(currTaskData);
-        }
+        
       } finally {
         setLoading(false);
+      }
+
+      try {
+        var task_response = await customFetch("http://127.0.0.1:8000/api/project/task/get/", {
+          method: 'GET'
+
+        });
+
+        if (task_response.ok) {
+          try {
+            const currTaskData = await task_response.json();
+            setTasks(currTaskData);
+            // console.log(currTaskData);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            const currTaskData = { errorMessage: "Something went wrong ..." };
+            setTasks(currTaskData);
+          }
+        } else {
+          handleUnauthorizedError();
+        }
+      }
+      catch (error) {
+        setError(error);
+        const currTaskData = { errorMessage: "Something went wrong ..." };
+        setTasks(currTaskData);
       }
     }
 
     fetchProjectsData();
+
+    
   }, []);
 
 
