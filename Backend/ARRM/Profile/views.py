@@ -9,10 +9,22 @@ from .models import (
     Degree, WritingSample, Interest, ResearchAssistant, 
     ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
 from .serializers import (
-    DegreeSerializer, WritingSampleSerializer, InterestSerializer, 
+    AccountDetailSerializer, DegreeSerializer, WritingSampleSerializer, InterestSerializer, 
     ResearchAssistantSerializer, ResearchAssistantAvailabilitySerializer, FacultySerializer)
-from Account.models import Role
+from Account.models import Role, UserAccount
 from Account.permissions import IsBlacklistedToken
+
+
+class RetrieveUserAccountDetailsView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, user_id):
+        try:
+            user = UserAccount.objects.get(id=user_id)
+        except UserAccount.DoesNotExist:
+            return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(AccountDetailSerializer(user, context={"request": request}).data, status=status.HTTP_200_OK)
 
 
 class AddDegreeView(APIView):

@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { AuthenticationError } from "./errors.js";
 
 function getRefreshToken() {
@@ -19,12 +18,6 @@ function updateAccessToken(newAccessToken) {
     document.cookie = `access_token=${newAccessToken}`; // update the 'access_token' cookie
 }
 
-function handleRefreshTokenError() {
-    // redirect to the login page
-    const navigate = useNavigate();
-    navigate('/loginpage', { replace: true });
-}
-
 function getAccessToken() {
     const cookies = document.cookie.split('; ');
     for (const cookie of cookies) {
@@ -36,16 +29,10 @@ function getAccessToken() {
     return null;
 }
 
-function handleUnauthorizedError() {
-    // redirect to the login page
-    const navigate = useNavigate();
-    navigate('/loginpage', { replace: true });
-}
-
 const refreshAccessToken = async () => {
     const refreshToken = getRefreshToken();
     if (!refreshToken) {
-        handleRefreshTokenError();
+        // handleRefreshTokenError();
         return;
     }
 
@@ -64,10 +51,10 @@ const refreshAccessToken = async () => {
             updateAccessToken(newAccessToken);
             return newAccessToken;
         } else {
-            handleRefreshTokenError();
+            // handleRefreshTokenError();
         }
     } catch (error) {
-        handleRefreshTokenError();
+        // handleRefreshTokenError();
     }
 };
 
@@ -76,10 +63,10 @@ const customFetch = async (url, options) => {
 
     if (!accessToken) {
         accessToken = await refreshAccessToken();
-    } 
-    
+    }
+
     if (!accessToken) {
-        handleUnauthorizedError();
+        // handleUnauthorizedError();
         return;
     }
 
@@ -103,10 +90,10 @@ const customFetch = async (url, options) => {
                     },
                 });
             } else {
-                handleUnauthorizedError();
+                // handleUnauthorizedError();
             }
         }
     }
 };
 
-export { customFetch, handleUnauthorizedError };
+export { customFetch };
