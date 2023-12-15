@@ -4,7 +4,6 @@ import { customFetch } from "../../authentication/token_middleware";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import { useParams } from "react-router-dom";
-<<<<<<< HEAD
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 
@@ -13,26 +12,10 @@ const ViewProject = () => {
 
   const navigate = useNavigate();
 
-=======
-
-const ViewProject = () => {
-
-  const navigate = useNavigate();
-  
->>>>>>> main
   function handleUnauthorizedError() {
     // redirect to the login page
     navigate('/loginpage', { replace: true });
   }
-<<<<<<< HEAD
-
-  const { id } = useParams();
-  // fetch user data from api
-  const [projectData, setProjectData] = React.useState(null);
-  const [projectTeam, setProjectTeam] = React.useState(null);
-  const [isLoading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-=======
   
   const {id} = useParams();
   // fetch user data from api
@@ -76,7 +59,6 @@ console.log(`http://127.0.0.1:8000/api/project/get/${id}`);
 
 
   
->>>>>>> main
   const projectPicture = "icons/ashesi_lab.jpeg"
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [expandedTask, setExpandedTask] = useState(null);
