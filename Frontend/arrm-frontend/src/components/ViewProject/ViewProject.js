@@ -4,11 +4,14 @@ import { customFetch } from "../../authentication/token_middleware";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import { useParams } from "react-router-dom";
+import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
+import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
+
 
 const ViewProject = () => {
 
   const navigate = useNavigate();
-  
+
   function handleUnauthorizedError() {
     // redirect to the login page
     navigate('/loginpage', { replace: true });
@@ -59,6 +62,139 @@ console.log(`http://127.0.0.1:8000/api/project/get/${id}`);
   const projectPicture = "icons/ashesi_lab.jpeg"
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [expandedTask, setExpandedTask] = useState(null);
+  const [membershipReq, setMembershipReq] = useState([])
+
+
+  React.useEffect(() => {
+
+    async function fetchUserData() {
+
+
+      // ---------------project data----------------
+      try {
+        const response = await customFetch(`http://127.0.0.1:8000/api/project/get/${id}/`, {
+          method: 'GET'
+
+
+        });
+
+        console.log(`http://127.0.0.1:8000/api/project/get/${id}`);
+        if (response.ok) {
+          try {
+            const responseData = await response.json();
+            setProjectData(responseData);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            const responseData = { errorMessage: "Something went wrong ..." };
+            setProjectData(responseData);
+          }
+        } else {
+          handleUnauthorizedError();
+        }
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+      // ---------------project team data----------------
+      const uData = await customFetch(`http://127.0.0.1:8000/api/account/user/`, {
+          method: 'GET'
+        });
+        if (uData.ok) {
+          try {
+            const responseUserData = await uData.json();
+            if (uData.ok) {
+              if (responseUserData.role === "ädmin" && responseUserData.role === "faculty") {
+                try {
+                  const responseTeamData = await customFetch(`http://127.0.0.1:8000/api/project/team/get/${id}/`, {
+                    method: 'GET'
+                  });
+
+                  if (responseTeamData.ok) {
+                    try {
+                      const responseTd = await responseTeamData.json();
+                      setProjectTeam(responseTd);
+                    } catch (error) {
+                      console.error('Error parsing JSON:', error);
+                      const responseTd = { errorMessage: "Something went wrong ..." };
+                      setProjectTeam(responseTd);
+                    }
+                  } else {
+                    handleUnauthorizedError();
+                  }
+                } catch (error) {
+                  setError(error);
+                } finally {
+                  setLoading(false);
+                }
+              }
+            }
+          } catch (error) {
+            setError(error);
+          }
+        }
+
+      // ---------------project team membership request----------------
+      try {
+        const uData = await customFetch(`http://127.0.0.1:8000/api/account/user/`, {
+          method: 'GET'
+        });
+        if (uData.ok) {
+          try {
+            const responseUserData = await uData.json();
+            if (uData.ok) {
+              if (responseUserData.role === "ädmin" && responseUserData.role === "faculty") {
+                // User is not authorized, return or handle accordingly
+
+                try {
+                  const responseRequests = await customFetch(`http://127.0.0.1:8000/api/project/membership/request/get/${id}/`, {
+                    method: 'GET'
+                  });
+
+                  if (responseRequests.ok) {
+                    try {
+                      const responseMembershipRequests = await responseRequests.json();
+                      setMembershipReq(responseMembershipRequests);
+                    } catch (error) {
+                      console.error('Error parsing JSON:', error);
+                      const responseMembershipRequests = { errorMessage: "Something went wrong ..." };
+                      setMembershipReq(responseMembershipRequests);
+                    }
+                  }
+                } catch (error) {
+                  setError(error);
+                } finally {
+                  setLoading(false);
+                }
+
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+          }
+        } 
+      } catch (error) { 
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+ }
+      fetchUserData();
+   
+  }, []);
+
+
+
+  const handleAccept = (memberId) => {
+    // Send API request to accept the member with memberId
+    setMembershipReq(membershipReq.filter(member => member.user_id !== memberId));
+  };
+
+  const handleReject = (memberId) => {
+    // Send API request to reject the member with memberId
+    setMembershipReq(membershipReq.filter(member => member.user_id !== memberId));
+  };
+
 
   const toggleDescription = () => {
     setShowFullDescription(!showFullDescription);
