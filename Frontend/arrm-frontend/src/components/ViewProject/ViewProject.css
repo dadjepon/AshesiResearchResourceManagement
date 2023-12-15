@@ -5,19 +5,18 @@
   z-index: 0;
 }
 
-/* ... (existing styles) */
-
-.upper-container {
-  height: 60vh;
-  overflow: hidden;
-  position: relative; /* Position relative for absolute positioning of title */
+.view-project-container{
+  padding-top: 40px;
 }
 
-.proj-picture {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+span .project-top-descript{
+display: flex;
+flex-direction: row;
+height: auto;
+padding: 15px;
 }
+
+
 
 .view-project-title {
   font-size: 36px; /* Increase font size for better visibility */
@@ -29,22 +28,59 @@
   z-index: 2; /* Ensure the title is above the image */
 }
 
-.view-project-container {
-  min-height: 100vh;
+.sml-group-collection{
   display: flex;
   flex-direction: column;
-  width: 100%;
-  padding: 0;
-  border-radius: 3px;
-  background-color: #fff;
-  box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.1);
-  margin-left: 0px;
-  margin-top: 0;
-  border-bottom: 1px solid #ddd;
-  position: relative;
+  justify-items: center;
+  align-items: center;
+  padding-left: 0px;
 }
 
-.view-project-details {
+.sml-group-collection .descript-label-sml{
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+  margin-right: 1vh;
+}
+
+.sml-group-collection .descript-txt-sml{
+  font-size: 1.1em;
+  font-weight: 400;
+  margin: 0;
+  color: var(--ash-color);
+  margin-bottom: 10px;
+}
+
+.top-descript-detail{
+  width: 50%;
+  height: auto;
+  background-color: yellow;
+  padding: 2vh;
+  padding-top: 3vh;
+}
+
+.top-descript-detail .descript-label{
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+ 
+}
+
+.top-descript-detail .descript-txt{
+  font-size: 1.1em;
+  font-weight: 400;
+  color: var(--ash-color);
+  margin-bottom: 1.2vh;
+  padding-left: 1vh;
+}
+
+.accept-ra-request .accept-btn{
+  background-color: green;
+}
+.accept-ra-request .reject-btn{}
+/* .view-project-details {
   margin: 10px;
   padding: 20px;
   background-color: white;
@@ -57,9 +93,9 @@
    z-index: 1;
    font-size: var(--medium-font-size);
    color: var(  --default-light-color);
-}
+} */
 
-.detail{
+/* .detail{
 display: flex;
 flex-direction: column;
 }
@@ -83,7 +119,7 @@ flex-direction: column;
 .view-all-link {
   color: blue;
   cursor: pointer;
-  text-decoration: underline; /* Add underline to the view all link */
+  text-decoration: underline; 
 }
 
 .tasks-section {
@@ -105,7 +141,7 @@ flex-direction: column;
 .task-details {
   margin-left: 20px;
   background-color: #f5f5f5;
-  padding: 10px; /* Increase padding for better readability */
+  padding: 10px; 
   border-radius: 5px;
 }
-
+ */
