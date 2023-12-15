@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/Projects.css";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 
 const Projects = ({ projectData }) => {
   const progressIndicator ={ ongoing:
@@ -15,6 +15,14 @@ const Projects = ({ projectData }) => {
     // If projectData is not defined, you can return a placeholder or handle the case accordingly
     return <div>No project data available.</div>;
   }
+
+const HandleClick = (e) => {
+  console.log(projectData.projectName);
+  let navigate = useNavigate();
+  navigate("/project");
+
+}
+
 
   return (
     <div className="project-task">

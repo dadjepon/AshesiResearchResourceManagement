@@ -1,8 +1,7 @@
 import React from "react";
 import "../styles/MainContent.css";
+import { customFetch } from "../authentication/token_middleware.js"
 import Projects from "./Projects";
-import { TaskData } from "./TaskData";
-import { customFetch } from "../authentication/token_middleware";
 import { useNavigate } from "react-router-dom";
 
 function MainContent() {
@@ -82,7 +81,34 @@ function MainContent() {
 
   var time = "Thursday, Nov 23, 2002";
   var diffTime = true;
+  //retreive project data for recent work
 
+  // const getAllProjectsData = async () => {
+  //   try {
+  //     const allProjectData = await customFetch (
+  //       "http://127.0.0.1:8000/api/project/get/"
+  //     );
+  //     const projectsData = await allProjectData.json();
+  //     return projectsData;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  // const getAllTasksData = async () => {
+  //   try {
+  //     const allTasksData = await customFetch (
+  //       "http://127.0.0.1:8000/api/project/task/get/"
+  //     );
+  //     const tasksData = await allTasksData.json();
+  //     return tasksData;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
+  // const projectsData = getAllProjectsData();
+  // const tasksData = getAllTasksData();
   // Sample project data
   // const projectData = [
   //   {

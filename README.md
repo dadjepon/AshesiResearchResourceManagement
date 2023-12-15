@@ -1,4 +1,4 @@
-# ARRM - Research Resource Management System
+# ARRM - Ashesi Research Resource Management System
 
 ARRM is a web application designed to facilitate the matching of Research Assistants to faculty members.
 

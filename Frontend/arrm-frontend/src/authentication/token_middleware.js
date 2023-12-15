@@ -1,5 +1,5 @@
 import React from "react";
-import { AuthenticationError } from "./errors";
+import { AuthenticationError } from "./errors.js";
 
 function getRefreshToken() {
     const cookies = document.cookie.split('; ');
