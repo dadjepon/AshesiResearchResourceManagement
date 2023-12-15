@@ -51,6 +51,29 @@ const ViewProject = ({ currProjectData }) => {
         
     </div>
     <div className="view-project-container">
+      <div className="project-intro">
+        <div className="project-image">
+        <img
+          src={add_pic}
+          alt="add_pic"
+          
+        />
+        </div>
+        {projectData && (
+              <div className="top-info">
+                <h4 className="project-page-titles">Bio:</h4>
+                  <p>{userCVData.bio || "No info here"}</p>
+                
+                  <h4 className="project-page-titles">Interests:</h4>
+                  <p>
+                    {interestsData
+                      .map((interest) => interest.interest.name)
+                      .join(", ") || "No info here"}
+                  </p>
+                
+              </div>)}
+
+      </div>
       <div className="upper-container"> 
          <img
                     src={projectPicture}
@@ -75,23 +98,7 @@ const ViewProject = ({ currProjectData }) => {
             </span>
           )}
         </div>
-        <div className="detail-values">
-          <span className="view-project-label">Status:</span>{" "}
         
-            <span className="view-project-descr">{projectData.status}</span>
-       
-          <span className="view-project-label">Start Date:</span>{" "}
-        
-            <span className="view-project-descr">{projectData.start_date}</span>
-        
-          <span className="view-project-label">End Date:</span>{" "}
-        
-            <span className="view-project-descr">{projectData.end_date}</span>
-        
-          <span className="view-project-label">Assigned RA:</span>{" "}
-        
-            <span className="view-project-descr">{projectData.assigned_ra}</span>
-        </div>
         
         <div className="tasks-section">
           <span className="view-project-label">Tasks:</span>{" "}
