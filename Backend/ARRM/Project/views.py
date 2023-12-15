@@ -80,8 +80,8 @@ class RetrieveProjectsView(generics.ListAPIView):
     filterset_fields = ["title", "status", "visibility", "created_at"]
     
     def get_queryset(self):
-        return Project.objects.filter(user=self.request.user)
-    
+        projects = ProjectTeam.objects.filter(user=self.request.user)
+        return Project.objects.filter(id__in=[project.project.id for project in projects], is_deleted=False) # type: ignore
 
 class UpdateProjectView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
@@ -766,7 +766,7 @@ class RetrieveTasksView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
     serializer_class = ProjectTaskSerializer
     queryset = ProjectTask.objects.all()
-    filterset_fields = ["name", "status", "due_date", "project_milestone", "assigned_ra", "project_milestone__name"]
+    filterset_fields = ["name", "status", "due_date", "project_milestone", "assignee", "project_milestone__name"]
 
     def get_queryset(self):
         # retrieve tasks for all project the user is a part of, use ProjectTeam to decide this
@@ -774,7 +774,7 @@ class RetrieveTasksView(generics.ListAPIView):
 
         # pre-fetch project_milestone for each task
         queryset = ProjectTask.objects.filter(
-            project_milestone__project__in=[project_team.project for project_team in project_teams]
+            project_milestone__project__in=[project_team.project for project_team in project_teams], assignee=self.request.user
         ).prefetch_related("project_milestone")
 
         return queryset

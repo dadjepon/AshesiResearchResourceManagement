@@ -49,7 +49,7 @@ ReactDOM.render(
       <Route exact path="/home" element={<HomePage />} />
       <Route path="/inv_projects" element={<InvitedProjectsPage />} />
       <Route path="/req_projects" element={<RequestedProjectsPage />} />
-      <Route path="/view_project" element={<ViewProjectPage />} />
+      <Route path="/view_project/:id" element={<ViewProjectPage />} />
       <Route path="/profile" element={<UserProfilePage/>} />
 
     </Routes>
