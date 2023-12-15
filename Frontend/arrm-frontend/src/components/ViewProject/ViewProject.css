@@ -6,62 +6,26 @@
 }
 
 .view-project-container{
-  background-color: #fffdfd;
-  margin-top: 5vh;
-  padding:4vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  overflow: hidden;
-  z-index: 0;
+  padding-top: 40px;
 }
 
-.project-top-descript{
-width: 100%;
+span .project-top-descript{
 display: flex;
 flex-direction: row;
-justify-content: space-between;
 height: auto;
-
+padding: 15px;
 }
 
-.top-imgs-content{
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 40%;
-  height: auto;
-  background-color: #fffdfd;
-  padding: 2vh;
-  padding-top: 3vh;
-  
-}
 
-.project-top-descript .top-imgs-content img{
-  width: 70%;
-  height: 20vh;
-  background-color: black;
-}
 
-.project-top-descript .top-imgs-content .view-project-title{
-  font-size: 2em;
-  font-weight: 700;
-  color: var(--primary-color);
-  width: 100%;
-  margin: 0;
-  margin-bottom: 1vh;
-}
-
-.top-imgs-content span{
-  display: flex;
-  flex-direction: row;
- justify-content:space-between;
- align-items: center;
- padding-right: 3vh;
- padding-left: 0;
-margin-right: 10vh;
-margin-top: 3vh;
+.view-project-title {
+  font-size: 36px; /* Increase font size for better visibility */
+  margin-bottom: 10px;
+  color: #ffffff;
+  position: absolute;
+  bottom: 20px; /* Adjust the distance from the bottom as needed */
+  left: 20px; /* Adjust the distance from the left as needed */
+  z-index: 2; /* Ensure the title is above the image */
 }
 
 .sml-group-collection{

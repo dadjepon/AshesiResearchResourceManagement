@@ -4,6 +4,7 @@ import { customFetch } from "../../authentication/token_middleware";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import { useParams } from "react-router-dom";
+<<<<<<< HEAD
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 
@@ -12,10 +13,18 @@ const ViewProject = () => {
 
   const navigate = useNavigate();
 
+=======
+
+const ViewProject = () => {
+
+  const navigate = useNavigate();
+  
+>>>>>>> main
   function handleUnauthorizedError() {
     // redirect to the login page
     navigate('/loginpage', { replace: true });
   }
+<<<<<<< HEAD
 
   const { id } = useParams();
   // fetch user data from api
@@ -23,6 +32,51 @@ const ViewProject = () => {
   const [projectTeam, setProjectTeam] = React.useState(null);
   const [isLoading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+=======
+  
+  const {id} = useParams();
+  // fetch user data from api
+  const [projectData, setProjectData] = React.useState(null);
+  const [isLoading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+ 
+  React.useEffect(() => {
+    async function fetchUserData() {
+
+      
+      try {
+        const response = await customFetch(`http://127.0.0.1:8000/api/project/get/${id}/`, {
+          method: 'GET'
+       
+        
+        });
+
+console.log(`http://127.0.0.1:8000/api/project/get/${id}`);
+        if (response.ok) {
+          try {
+            const responseData = await response.json();
+            setProjectData(responseData);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            const responseData = { errorMessage: "Something went wrong ..." };
+            setProjectData(responseData);
+          }
+        } else {
+          handleUnauthorizedError();
+        }
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserData();
+  }, []);
+
+
+  
+>>>>>>> main
   const projectPicture = "icons/ashesi_lab.jpeg"
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [expandedTask, setExpandedTask] = useState(null);
@@ -168,119 +222,106 @@ const ViewProject = () => {
     setExpandedTask(expandedTask === taskId ? null : taskId);
   };
 
-  if (projectData === null) {
+  if(projectData === null){ 
     console.log(projectData);
     // If projectData is not defined, you can return a placeholder or handle the case accordingly
     return <div>No project data available.</div>;
   }
 
   return (
+    <>
+      <div className="non-expanding">
 
-    <div className="view-project-container">
 
-      <span className="project-top-descript">
-        <div className="top-imgs-content">
-          <h1 className="view-project-title">{projectData.title}</h1>
-          <img
-            src={projectPicture}
-            alt="default-proj-picture"
-            className="default-proj-picture"
-          />
+      </div>
+      <div className="view-project-container">
 
-          <span>
-            <div className="sml-group-collection">
-              <h3 className="descript-label-sml">Status</h3>
-              <p className="descript-txt-sml">{projectData.status}</p>
-            </div>
-            <div className="sml-group-collection">
-              <h3 className="descript-label-sml">Project Hours</h3>
-              <p className="descript-txt-sml">{projectData.estimated_project_hours}</p>
-            </div>
-          </span>
-          <span>
-            <div className="sml-group-collection">
-              <h3 className="descript-label-sml">Start Date</h3>
-              <p className="descript-txt-sml">{projectData.start_date}</p>
-            </div>
-            <div className="sml-group-collection">
-              <h3 className="descript-label-sml">End Date</h3>
-              <p className="descript-txt-sml">{projectData.end_date}</p>
-            </div>
-          </span>
-
-        </div>
-        <div className="top-descript-detail">
-          <h3 className="descript-label">
-            Project Description:
-          </h3>
-          <p className="descript-txt">
-            {projectData.description && projectData.description.length > 300 ? (
-              <>
-                {projectData.description.substring(0, 300)}...
-                <div className="view-all-link" onClick={toggleDescription}>
-                  View All
+        <span className="project-top-descript">
+          <div className="top-imgs-content">
+            <img
+              src={projectPicture}
+              alt="default-proj-picture"
+              className="default-proj-picture"
+            />
+            <h1 className="view-project-title">{projectData.title}</h1>
+           
+              <span>
+                <div className="sml-group-collection">
+                <h3 className="descript-label-sml">Status</h3>
+                <p className="descript-txt-sml">{projectData.status}</p>
                 </div>
-              </>
-            ) : (
-              projectData.description
-            )}
-            {!projectData.description && "No description available."}
-          </p>
-          <h3 className="descript-label">
-            Study Areas:
-          </h3>
-          <p className="descript-txt">
-            {projectData.study_areas.map((area, index) => (
-              <span key={index}>
-                {area}
-                {index < projectData.study_areas.length - 1 && ', '}
+                <div className="sml-group-collection">
+                  <h3 className="descript-label-sml">Project Hours</h3>
+                <p className="descript-txt-sml">{projectData.estimated_project_hours}</p>
+                </div>
               </span>
-            ))}
-          </p>
-          <h3 className="descript-label">
-            Faculty:
-          </h3>
-          <p className="descript-txt">
-            {projectData.user}
-          </p>
-          <h3 className="descript-label">
-            Project Members:
-          </h3>
-          <p className="descript-txt">
-            {membershipReq.map((member) => (
-              <>
-                {member.user}
-              </>
-            ))}</p>
-          <h3 className="descript-label">
-            Project Join Requests:
-          </h3>
-          <div className="accept-ra-request">
-            {membershipReq.map((member) => (
-              <div key={member.user_id} className="project-member">
-                <p className="descript-txt">
-                  {member.user}
-                </p>
-                <CheckBoxOutlinedIcon
-                  className="accept-icon"
-                  onClick={() => handleAccept(member.user_id)}
-                />
-                <DisabledByDefaultOutlinedIcon
-                  className="reject-icon"
-                  onClick={() => handleReject(member.user_id)}
-                />
-              </div>
-            ))}
+              <span>
+                <div className="sml-group-collection">
+                <h3 className="descript-label-sml">Start Date</h3>
+                <p className="descript-txt-sml">{projectData.start_date}</p>
+                </div>
+                <div className="sml-group-collection">
+                  <h3 className="descript-label-sml">End Date</h3>
+                <p className="descript-txt-sml">{projectData.end_date}</p>
+                </div>
+              </span>
+          
+          </div>
+          <div className="top-descript-detail">
+            <h3 className="descript-label">
+              Project Description:
+            </h3>
+            <p className="descript-txt">
+              {projectData.description && projectData.description.length > 300 ? (
+                <>
+                  {projectData.description.substring(0, 300)}...
+                  <div className="view-all-link" onClick={toggleDescription}>
+                    View All
+                  </div>
+                </>
+              ) : (
+                projectData.description
+              )}
+            </p>
+            <h3 className="descript-label">
+              Study Areas:
+            </h3>
+            <p className="descript-txt">
+              {projectData.study_areas} 
+            </p>
+            <h3 className="descript-label">
+              Faculty:
+            </h3>
+            <p className="descript-txt">
+              {projectData.user} 
+            </p>
+            <h3 className="descript-label">
+              Project Members:
+            </h3>
+            <p className="descript-txt">
+             {/* projectData.members */}
+              Sam Sam Sam Sam Sam
+            </p>
+            <h3 className="descript-label">
+              Project Join Requests:
+            </h3>
+            <div className="accept-ra-request">
+<p className="descript-txt">
+             {/* projectData.members */}
+              Sam Sam Sam Sam Sam
+            </p>
+            <Button className="accept-btn"/>
+           <Button className="reject-btn"/>
+            </div>
+            
           </div>
 
-        </div>
-
-      </span>
+        </span>
 
 
 
-      {/* <h1 className="view-project-title">{projectData.title}</h1> */}
-      {/* <div className="view-project-details">
+        {/* <h1 className="view-project-title">{projectData.title}</h1> */}
+        {/* <div className="view-project-details">
           <div className="detail">
             <span className="view-project-label">Description:</span>{" "}
             {showFullDescription ? (
@@ -332,7 +373,8 @@ const ViewProject = () => {
             ))}
           </div>
         </div> */}
-    </div>
+      </div>
+    </>
   );
 };
 
