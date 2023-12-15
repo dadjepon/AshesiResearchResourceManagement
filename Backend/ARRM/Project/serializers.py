@@ -99,28 +99,48 @@ class ProjectSerializer(serializers.ModelSerializer):
         for project_study_area in project_study_areas:
             representation["study_areas"].append(project_study_area.study_area)
 
+        # retrieve team members
+        representation["team_members"] = []
+        for project_team in ProjectTeam.objects.filter(project=instance):
+            team_member = ProjectTeamSerializer(project_team, context={"request": self.context["request"]})
+            representation["team_members"].append(team_member.to_representation(project_team))
+
         # retrieve milestones
         representation["milestones"] = []
         for project_milestone in ProjectMilestone.objects.filter(project=instance):
             milestone = ProjectMilestoneSerializer(project_milestone, context={"request": self.context["request"]})
             representation["milestones"].append(milestone.to_representation(project_milestone))
 
+        # if the user is the admin, retrieve project requests and invites
+        if self.context["request"].user == instance.user:
+            # retrieve project requests
+            representation["project_requests"] = []
+            for project_request in ProjectTeamRequest.objects.filter(project=instance):
+                request = ProjectTeamRequestSerializer(project_request, context={"request": self.context["request"]})
+                representation["project_requests"].append(request.to_representation(project_request))
+
+            # retrieve project invitations
+            representation["project_invitations"] = []
+            for project_invitation in ProjectTeamInvitation.objects.filter(project=instance):
+                invitation = ProjectTeamInvitationSerializer(project_invitation, context={"request": self.context["request"]})
+                representation["project_invitations"].append(invitation.to_representation(project_invitation))
+
         return representation
     
 
 class ProjectTeamSerializer(serializers.ModelSerializer):
-    project = serializers.SerializerMethodField("get_project")
     user = serializers.SerializerMethodField("get_user")
+    user_id = serializers.SerializerMethodField("get_user_id")
 
     class Meta:
         model = ProjectTeam
-        fields = ["id", "project", "user"]
-
-    def get_project(self, obj):
-        return obj.project.title
+        fields = ["id", "user", "user_id"]
     
     def get_user(self, obj):
-        return obj.user.email
+        return obj.user.firstname + " " + obj.user.lastname
+    
+    def get_user_id(self, obj):
+        return obj.user.id
 
 
 class ProjectTeamRequestSerializer(serializers.ModelSerializer):

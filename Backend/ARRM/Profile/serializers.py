@@ -6,10 +6,40 @@ from .models import (
     Degree, DegreeType, WritingSample, StudyArea, Interest, Department, 
     ResearchAssistant, ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
 from .helper import LINKIN_PROFILE_REGEX
-from Account.models import UserAccount
+from Account.models import UserAccount, Role
 from Miscelleneous.models import Semester
 from Miscelleneous.serializers import SemesterSerializer
 from Project.helper import get_ra_total_hours, get_ra_project_hours
+
+
+class AccountDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserAccount
+        fields = [
+            "id", "firstname", "lastname", "email",
+            "mobile_number", "role", "nationality", "last_login"
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        # extend Faculty or ResearchAssistant representation
+        if instance.role == Role.FACULTY:
+            if Faculty.objects.filter(user=instance).exists():
+                extended_rep = FacultySerializer(Faculty.objects.get(user=instance), context=self.context).data
+            else:
+                extended_rep = {}
+        elif instance.role == Role.RA:
+            if ResearchAssistant.objects.filter(user=instance).exists():
+                extended_rep = ResearchAssistantSerializer(ResearchAssistant.objects.get(user=instance), context=self.context).data
+            else:
+                extended_rep = {}
+        else:
+            extended_rep = {}
+
+        representation.update(extended_rep)
+        return representation
 
 
 class DegreeSerializer(serializers.ModelSerializer):

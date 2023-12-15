@@ -1,5 +1,7 @@
 from django.urls import path
 from .views import (
+    RetrieveUserAccountDetailsView,
+
     AddDegreeView, RetrieveDegreeView, RetrieveDegreesView, UpdateDegreeView, 
     VerifyDegreeView, DeleteDegreeView, RestoreDegreeView, DeleteDegreePermanentlyView,
 
@@ -16,6 +18,9 @@ from .views import (
 )
 
 urlpatterns = [
+    # USER ACCOUNT ROUTES
+    path("get/<int:user_id>/", RetrieveUserAccountDetailsView.as_view(), name="retrieve-user-account-details"),
+
     # DEGREE ROUTES
     path("degree/add/", AddDegreeView.as_view(), name="add-degree"),
     path("degree/get/<int:degree_id>/", RetrieveDegreeView.as_view(), name="retrieve-degree"),

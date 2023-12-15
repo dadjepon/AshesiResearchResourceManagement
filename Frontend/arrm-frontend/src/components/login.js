@@ -30,7 +30,7 @@ function LoginPage() {
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log(responseData);
+
         // store the tokens as cookies
         document.cookie = `access_token=${responseData.access}`;
         document.cookie = `refresh_token=${responseData.refresh}`;
