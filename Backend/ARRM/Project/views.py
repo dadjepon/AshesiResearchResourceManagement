@@ -83,6 +83,17 @@ class RetrieveProjectsView(generics.ListAPIView):
         projects = ProjectTeam.objects.filter(user=self.request.user)
         return Project.objects.filter(id__in=[project.project.id for project in projects], is_deleted=False) # type: ignore
 
+
+class RetrievePublicProjectsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+    serializer_class = ProjectSerializer
+    queryset = Project.objects.all()
+    filterset_fields = ["title", "status", "created_at"]
+    
+    def get_queryset(self):
+        return Project.objects.filter(visibility="public", is_deleted=False)
+
+
 class UpdateProjectView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 

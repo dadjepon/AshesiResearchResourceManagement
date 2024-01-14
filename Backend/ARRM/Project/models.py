@@ -70,6 +70,20 @@ class ProjectStudyArea(models.Model):
 
     def __str__(self):
         return f"{self.project.title} -> {self.study_area}"
+    
+
+class ProjectRole(models.Model):
+    """
+    defines attributes for a ProjectRole class
+
+    Attributes:
+        - name (CharField): the role's name
+    """
+    
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class ProjectTeam(models.Model):
@@ -79,6 +93,7 @@ class ProjectTeam(models.Model):
     Attributes:
         - project (Project): the project
         - user (UserAccount): the user account of the team member
+        - role (CharField): the team member's role (faculty, ra, etc.)
     """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
