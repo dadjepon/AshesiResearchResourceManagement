@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import (
-    AddProjectView, RetrieveProjectView, RetrieveProjectsView, UpdateProjectView,
-    RemoveProjectStudyAreaView, ChangeProjectVisibilityView, DeleteProjectView, 
-    RestoreProjectView, DeleteProjectPermanentlyView,
+    AddProjectView, RetrieveProjectView, RetrieveProjectsView, RetrievePublicProjectsView, 
+    UpdateProjectView, RemoveProjectStudyAreaView, ChangeProjectVisibilityView, 
+    DeleteProjectView, RestoreProjectView, DeleteProjectPermanentlyView,
 
     ProjectMatchScoresView, RetrieveProjectMatchScoresView,
 
@@ -28,6 +28,7 @@ urlpatterns = [
     path("add/", AddProjectView.as_view(), name="add-project"),
     path("get/<int:project_id>/", RetrieveProjectView.as_view(), name="retrieve-project"),
     path("get/", RetrieveProjectsView.as_view(), name="retrieve-projects"),
+    path("get/public/", RetrievePublicProjectsView.as_view(), name="retrieve-public-projects"),
     path("update/<int:project_id>/", UpdateProjectView.as_view(), name="update-project"),
     path("study_area/remove/", RemoveProjectStudyAreaView.as_view(), name="remove-project-study-area"),
     path("visibility/change/<int:project_id>/", ChangeProjectVisibilityView.as_view(), name="change-project-visibility"),
