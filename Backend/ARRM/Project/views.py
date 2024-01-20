@@ -7,15 +7,15 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
-    Project, ProjectStatus, ProjectStudyArea, ProjectTeam, ProjectTeamRequest, 
-    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestoneTemplate, 
-    ProjectMilestone, ProjectTask, ProjectTaskFeedback)
+    Project, ProjectStatus, ProjectStudyArea, TeamMemberRole, ProjectRole, ProjectTeam, ProjectTeamRequest, ProjectTeamInvitation, 
+    ProjectMatchScores, Milestone, ProjectMilestoneTemplate, ProjectMilestone, ProjectTask, ProjectTaskFeedback)
 from .serializers import (
-    ProjectSerializer, ProjectMatchScoresSerializer, ProjectTeamRequestSerializer, ProjectTeamInvitationSerializer, 
-    MilestoneSerializer, ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, ProjectTaskFeedbackSerializer)
+    ProjectSerializer, TeamMemberRoleSerializer, ProjectRoleSerializer, ProjectMatchScoresSerializer, ProjectTeamRequestSerializer, 
+    ProjectTeamInvitationSerializer, MilestoneSerializer, ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, 
+    ProjectTaskFeedbackSerializer)
 from .helper import (
     PROJECT_MILESTONE_TEMPLATE_DICT, TOTAL_MATCH_SCORE, compute_degree_match_score, compute_interest_match_score, 
-    compute_study_area_match_score, get_cummulative_task_hours, get_milestone_dict, get_ra_available_hours, get_available_ras
+    compute_study_area_match_score, get_cumulative_task_hours, get_milestone_dict, get_ra_available_hours, get_available_ras
 )
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role, UserAccount
@@ -214,6 +214,105 @@ class RestoreProjectView(APIView):
         project.is_deleted = False # type: ignore
         project.save()
         return Response({"success": f"{project.title} has been restored from trash successfully!"}, status=status.HTTP_200_OK)
+    
+
+class CreateTeamMemberRoleView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request):
+        if request.user.role != Role.FACULTY:
+            return Response({"error": "You do not have permission to perform this action!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = TeamMemberRoleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class RetrieveTeamMemberRolesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request):
+        default_roles = TeamMemberRole.objects.filter(name="Default")
+        user_member_roles = TeamMemberRole.objects.filter(user=request.user)
+        project_roles = default_roles.union(user_member_roles)
+        return Response(TeamMemberRoleSerializer(project_roles, many=True).data, status=status.HTTP_200_OK)
+    
+
+class DeleteTeamMemberRoleView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request, role_id):
+        try:
+            team_member_role = TeamMemberRole.objects.get(id=role_id)
+        except TeamMemberRole.DoesNotExist:
+            return Response({"error": "Project role not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if team_member_role.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+
+        team_member_role.delete()
+        return Response({"success": "Project role deleted successfully!"}, status=status.HTTP_200_OK)
+    
+
+class AddRoleToProjectView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request):
+        try:
+            project = Project.objects.get(id=request.data.get("project_id"))
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if project.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = ProjectRoleSerializer(context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+
+
+class RemoveRoleFromProjectView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request):
+        try:
+            project = Project.objects.get(id=request.data.get("project_id"))
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if project.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            team_member_role = TeamMemberRole.objects.get(id=request.data.get("team_member_role_id"))
+        except TeamMemberRole.DoesNotExist:
+            return Response({"error": "Team member role not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if ProjectRole.objects.filter(project=project, team_member_role=team_member_role).exists():
+            project_role = ProjectRole.objects.get(project=project, team_member_role=team_member_role)
+            project_role.delete()
+            return Response({"success": "Project role removed successfully!"}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "Project role not found!"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+class RetrieveProjectRolesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        project_roles = ProjectRole.objects.filter(project=project)
+        return Response(ProjectRoleSerializer(project_roles, many=True).data, status=status.HTTP_200_OK)
     
 
 class RequestProjectMembershipView(APIView):
@@ -502,7 +601,7 @@ class ProjectMatchScoresView(APIView):
             return Response({"error": "Estimated project hours is required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
         
         # retrieve all project tasks and compute required project hours
-        assigned_project_hours = get_cummulative_task_hours(project)
+        assigned_project_hours = get_cumulative_task_hours(project)
 
         # retrieve RAs and compute available hours
         ra_available_hours = get_ra_available_hours(project)
