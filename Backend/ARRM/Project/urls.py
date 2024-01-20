@@ -6,6 +6,9 @@ from .views import (
 
     ProjectMatchScoresView, RetrieveProjectMatchScoresView,
 
+    CreateTeamMemberRoleView, RetrieveTeamMemberRolesView,DeleteTeamMemberRoleView,
+    AddRoleToProjectView, RemoveRoleFromProjectView, RetrieveProjectRolesView,
+
     RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
     AcceptProjectMembershipView, RejectProjectMembershipView, DeleteProjectMembershipRequestView,
 
@@ -39,6 +42,16 @@ urlpatterns = [
     # PROJECT MATCH SCORES ROUTES
     path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
     path("match/get/<int:project_id>/", RetrieveProjectMatchScoresView.as_view(), name="retrieve-project-match-scores"),
+
+    # PROJECT ROLE ROUTES
+    path("role/create/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
+    path("role/get/", RetrieveTeamMemberRolesView.as_view(), name="retrieve-team-member-roles"),
+    path("role/delete/<int:role_id>/", DeleteTeamMemberRoleView.as_view(), name="delete-team-member-role"),
+
+    # PROJECT ROLE ASSIGNMENT ROUTES
+    path("role/add/", AddRoleToProjectView.as_view(), name="add-role-to-project"),
+    path("role/remove/", RemoveRoleFromProjectView.as_view(), name="remove-role-from-project"),
+    path("role/get/<int:project_id>/", RetrieveProjectRolesView.as_view(), name="retrieve-project-roles"),
     
     # PROJECT TEAM
     path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
