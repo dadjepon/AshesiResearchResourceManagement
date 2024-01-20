@@ -10,9 +10,9 @@ from .views import (
 
     AddInterestView, RetrieveInterestsView, DeleteInterestView,
 
-    UpdateResearchAssistantView, RetrieveResearchAssitantView, RemoveRAInterestView,
+    UpdateResearchAssistantView, RetrieveResearchAssistantView, RemoveRAInterestView,
     
-    AddRAToSemesterView, RemoveRAFromSemesterView, RetrieveRAAvaliabilityView,
+    AddRAToSemesterView, RemoveRAFromSemesterView, RetrieveRAAvailabilityView,
 
     UpdateFacultyView, RetrieveFacultyView, RemoveFacultyInterestView,
 )
@@ -46,13 +46,13 @@ urlpatterns = [
 
     # RESEARCH ASSISTANT ROUTES
     path("ra/update/", UpdateResearchAssistantView.as_view(), name="update-ra"),
-    path("ra/get/", RetrieveResearchAssitantView.as_view(), name="retrieve-ra"),
+    path("ra/get/", RetrieveResearchAssistantView.as_view(), name="retrieve-ra"),
     path("ra/interest/remove/<int:interest_id>/", RemoveRAInterestView.as_view(), name="remove-ra-interest"),
 
     # RESEARCH ASSISTANT AVAILABILITY ROUTES
     path("ra/availability/add/", AddRAToSemesterView.as_view(), name="add-ra-availability"),
     path("ra/availability/remove/<int:availability_id>/", RemoveRAFromSemesterView.as_view(), name="remove-ra-availability"),
-    path("ra/availability/get/<int:user_id>/", RetrieveRAAvaliabilityView.as_view(), name="retrieve-ra-availability"),
+    path("ra/availability/get/<int:user_id>/", RetrieveRAAvailabilityView.as_view(), name="retrieve-ra-availability"),
 
     # FACULTY ROUTES
     path("faculty/update/", UpdateFacultyView.as_view(), name="update-faculty"),
