@@ -10,7 +10,7 @@ from Profile.models import StudyArea
 class ProjectStatus(models.TextChoices):
     """
     defines choices for project status
-    types: (pending, in-progress, completed, anulled)
+    types: (pending, in-progress, completed, annulled)
     """
 
     PENDING = "pending", _("Pending")
@@ -19,7 +19,7 @@ class ProjectStatus(models.TextChoices):
     IN_REVIEW = "in_review", _("In Review")
     DONE = "done", _("Done")
     COMPLETED = "completed", _("Completed")
-    ANULLED = "anulled", _("Anulled")
+    ANNULLED = "annulled", _("Annulled")
 
 
 class Project(models.Model):
@@ -72,18 +72,36 @@ class ProjectStudyArea(models.Model):
         return f"{self.project.title} -> {self.study_area}"
     
 
+class TeamMemberRole(models.Model):
+    """
+    defines attributes for a TeamMemberRole class
+
+    Attributes:
+        - user (UserAccount): the user account of the project owner
+        - name (CharField): the role's name
+    """
+    
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class ProjectRole(models.Model):
     """
     defines attributes for a ProjectRole class
 
     Attributes:
-        - name (CharField): the role's name
+        - project (Project): the project
+        - team_member_role (TeamMemberRole): the role applicable to the project
     """
-    
-    name = models.CharField(max_length=100, unique=True)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    team_member_role = models.ForeignKey(TeamMemberRole, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.project.title} -> {self.role.name}"
 
 
 class ProjectTeam(models.Model):
@@ -91,16 +109,15 @@ class ProjectTeam(models.Model):
     defines attributes for a ProjectTeam class
 
     Attributes:
-        - project (Project): the project
         - user (UserAccount): the user account of the team member
-        - role (CharField): the team member's role (faculty, ra, etc.)
+        - project_role (ProjectRole): the project role for the team member
     """
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project.title} -> {self.user.email}"
+        return f"{self.project_role.project.title} -> {self.user.email}"
 
 
 class ProjectTeamRequest(models.Model):
