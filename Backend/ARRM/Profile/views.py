@@ -15,6 +15,17 @@ from Account.models import Role, UserAccount
 from Account.permissions import IsBlacklistedToken
 
 
+class RetrieveAllUsersView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+    serializer_class = AccountDetailSerializer
+    queryset = UserAccount.objects.all()
+    filterset_fields = ["first_name", "last_name", "email", "role", "is_active"]
+
+    def get_queryset(self):
+        users = UserAccount.objects.filter(is_deleted=False)
+        return Response(AccountDetailSerializer(users, many=True).data, status=status.HTTP_200_OK)
+
+
 class RetrieveUserAccountDetailsView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
@@ -269,7 +280,7 @@ class RemoveRAFromSemesterView(APIView):
         return Response({"success": "Semester deleted successfully"}, status=status.HTTP_200_OK)
     
 
-class RetrieveRAAvaliabilityView(APIView):
+class RetrieveRAAvailabilityView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
     def get(self, request, user_id):
@@ -339,7 +350,7 @@ class UpdateResearchAssistantView(APIView):
 
     def patch(self, request):
         if not request.user.role == Role.RA:
-            return Response({"error": "You are not a Research Assitant!"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You are not a Research Assistant!"}, status=status.HTTP_403_FORBIDDEN)
         
         try:
             ra = ResearchAssistant.objects.get(user=request.user)
@@ -402,7 +413,7 @@ class RemoveRAInterestView(APIView):
         return Response(serializer, status=status.HTTP_200_OK)
     
 
-class RetrieveResearchAssitantView(APIView):
+class RetrieveResearchAssistantView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
     def get(self, request):
