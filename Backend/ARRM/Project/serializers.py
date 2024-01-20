@@ -4,7 +4,7 @@ from rest_framework import serializers
 from datetime import datetime, timedelta
 
 from .models import (
-    ProjectStatus, Project, ProjectStudyArea, ProjectTeam, ProjectTeamRequest,
+    ProjectStatus, Project, ProjectStudyArea, TeamMemberRole, ProjectRole, ProjectTeam, ProjectTeamRequest,
     ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskFeedback,
 )
 from Profile.models import StudyArea
@@ -111,7 +111,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             milestone = ProjectMilestoneSerializer(project_milestone, context={"request": self.context["request"]})
             representation["milestones"].append(milestone.to_representation(project_milestone))
 
-        # if the user is the admin, retrieve project requests and invites
+        # if the user is the project admin
         if self.context["request"].user == instance.user:
             # retrieve project requests
             representation["project_requests"] = []
@@ -125,6 +125,85 @@ class ProjectSerializer(serializers.ModelSerializer):
                 invitation = ProjectTeamInvitationSerializer(project_invitation, context={"request": self.context["request"]})
                 representation["project_invitations"].append(invitation.to_representation(project_invitation))
 
+            # retrieve project match scores
+            representation["project_match_scores"] = []
+            for project_match_score in ProjectMatchScores.objects.filter(project=instance):
+                match_score = ProjectMatchScoresSerializer(project_match_score, context={"request": self.context["request"]})
+                representation["project_match_scores"].append(match_score.to_representation(project_match_score))
+            
+        else:
+            # check if the user has already requested to join the project
+            if ProjectTeamRequest.objects.filter(project=instance, user=self.context["request"].user).exists():
+                representation["has_requested"] = True
+                representation["request_id"] = ProjectTeamRequest.objects.get(project=instance, user=self.context["request"].user).id
+            else:
+                representation["has_requested"] = False
+
+            # check if the user has already been invited to join the project
+            if ProjectTeamInvitation.objects.filter(project=instance, user=self.context["request"].user).exists():
+                representation["has_been_invited"] = True
+                representation["invitation_id"] = ProjectTeamInvitation.objects.get(project=instance, user=self.context["request"].user).id
+            else:
+                representation["has_been_invited"] = False
+
+        return representation
+    
+
+class TeamMemberRoleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TeamMemberRole
+        fields = ["id", "name", "user"]
+
+    def validate_name(self, value):
+        if len(value) > 100:
+            raise serializers.ValidationError("Name must not exceed 100 characters!")
+        
+        if not re.match(r"^[a-zA-Z0-9 ]+$", value):
+            raise serializers.ValidationError("Name must only contain alphanumeric characters!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if TeamMemberRole.objects.filter(name=attrs["name"], user=attrs["user"]).exists():
+            raise serializers.ValidationError("You have already created a role with this name!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
+        return representation
+    
+
+class ProjectRoleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProjectRole
+        fields = ["id", "project", "team_member_role"]
+
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project!")
+        
+        return value
+    
+    def validate_team_member_role(self, value):
+        if not TeamMemberRole.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid team member role!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if ProjectRole.objects.filter(project=attrs["project"], team_member_role=attrs["team_member_role"]).exists():
+            raise serializers.ValidationError("You have already created a role with this name!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project"] = instance.project.title
+        representation["team_member_role"] = instance.team_member_role.name
         return representation
     
 
@@ -134,13 +213,30 @@ class ProjectTeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTeam
-        fields = ["id", "user", "user_id"]
+        fields = ["id", "user", "user_id", "project_role"]
     
     def get_user(self, obj):
         return obj.user.firstname + " " + obj.user.lastname
     
     def get_user_id(self, obj):
         return obj.user.id
+    
+    def validate_project_role(self, value):
+        if not ProjectRole.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project role!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if ProjectTeam.objects.filter(user=attrs["user"]).exists():
+            raise serializers.ValidationError("You have already added this team member!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project_role"] = instance.project_role.team_member_role.name
+        return representation
 
 
 class ProjectTeamRequestSerializer(serializers.ModelSerializer):
