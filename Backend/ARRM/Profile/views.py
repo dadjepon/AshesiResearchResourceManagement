@@ -392,7 +392,7 @@ class RemoveRAInterestView(APIView):
 
     def delete(self, request, interest_id):
         if not request.user.role == Role.RA:
-            return Response({"error": "You are not a Research Assitant!"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You are not a Research Assistant!"}, status=status.HTTP_403_FORBIDDEN)
         
         try:
             ra = ResearchAssistant.objects.get(user=request.user)
@@ -418,7 +418,7 @@ class RetrieveResearchAssistantView(APIView):
 
     def get(self, request):
         if not request.user.role == Role.RA:
-            return Response({"error": "You are not a Research Assitant!"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You are not a Research Assistant!"}, status=status.HTTP_403_FORBIDDEN)
         
         try:
             ra = ResearchAssistant.objects.get(user=request.user)
