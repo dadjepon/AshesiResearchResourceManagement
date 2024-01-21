@@ -58,7 +58,7 @@ urlpatterns = [
     path("team/remove/<int:project_member_id>/", RemoveProjectTeamMemberView.as_view(), name="remove-project-team-member"),
 
     # PROJECT MEMBERSHIP ROUTES
-    path("membership/request/<int:project_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
+    path("membership/request/<int:project_role_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
     path("membership/request/get/<int:project_id>/", RetrieveProjectMembershipRequestsView.as_view(), name="retrieve-project-membership-requests"),
     path("membership/request/accept/<int:project_request_id>/", AcceptProjectMembershipView.as_view(), name="accept-project-membership-request"),
     path("membership/request/reject/<int:project_request_id>/", RejectProjectMembershipView.as_view(), name="reject-project-membership-request"),

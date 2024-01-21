@@ -242,31 +242,39 @@ class ProjectTeamSerializer(serializers.ModelSerializer):
 class ProjectTeamRequestSerializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField("get_project")
     user = serializers.SerializerMethodField("get_user")
+    role = serializers.SerializerMethodField("get_role")
 
     class Meta:
         model = ProjectTeamRequest
-        fields = ["id", "project", "user"]
+        fields = ["id", "project", "user", "role"]
 
     def get_project(self, obj):
         return obj.project.title
     
     def get_user(self, obj):
         return obj.user.email
+    
+    def get_role(self, obj):
+        return obj.project_role.team_member_role.name
 
 
 class ProjectTeamInvitationSerializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField("get_project")
     user = serializers.SerializerMethodField("get_user")
+    role = serializers.SerializerMethodField("get_role")
 
     class Meta:
         model = ProjectTeamInvitation
-        fields = ["id", "project", "user"]
+        fields = ["id", "project", "user", "role"]
  
     def get_project(self, obj):
         return obj.project.title
     
     def get_user(self, obj):
         return obj.user.email
+    
+    def get_role(self, obj):
+        return obj.project_role.team_member_role.name
     
 
 class ProjectMatchScoresSerializer(serializers.ModelSerializer):
