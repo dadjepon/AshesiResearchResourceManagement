@@ -7,16 +7,17 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
-    Project, ProjectStatus, ProjectStudyArea, TeamMemberRole, ProjectRole, ProjectTeam, ProjectTeamRequest, ProjectTeamInvitation, 
-    ProjectMatchScores, Milestone, ProjectMilestoneTemplate, ProjectMilestone, ProjectTask, ProjectTaskFeedback)
+    Project, ProjectStatus, ProjectStudyArea, TeamMemberRole, ProjectRole, ProjectTeam, ProjectTeamRequest, 
+    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestoneTemplate, ProjectMilestone, ProjectTask, 
+    ProjectTaskAssignment, ProjectTaskFeedback, BlindProjectFeedback)
 from .serializers import (
     ProjectSerializer, TeamMemberRoleSerializer, ProjectRoleSerializer, ProjectMatchScoresSerializer, ProjectTeamRequestSerializer, 
     ProjectTeamInvitationSerializer, MilestoneSerializer, ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectTeamSerializer, 
-    ProjectTaskFeedbackSerializer)
+    ProjectTaskFeedbackSerializer, BlindProjectFeedbackSerializer)
 from .helper import (
     PROJECT_MILESTONE_TEMPLATE_DICT, TOTAL_MATCH_SCORE, compute_degree_match_score, compute_interest_match_score, 
-    compute_study_area_match_score, get_cumulative_task_hours, get_milestone_dict, get_ra_available_hours, get_available_ras
-)
+    compute_project_study_area_match_score, get_cumulative_task_hours, get_milestone_dict, get_ra_available_hours, 
+    get_available_ras, compute_faculty_study_area_match_score,)
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role, UserAccount
 from Profile.models import Faculty, ResearchAssistant, StudyArea, Degree
@@ -608,7 +609,7 @@ class ProjectMatchScoresView(APIView):
         assigned_project_hours = get_cumulative_task_hours(project)
 
         # retrieve RAs and compute available hours
-        ra_available_hours = get_ra_available_hours(project)
+        ra_available_hours = get_ra_available_hours()
         available_ras = get_available_ras(ra_available_hours, project, assigned_project_hours)
 
         # retrieve project study areas
@@ -619,10 +620,13 @@ class ProjectMatchScoresView(APIView):
         ra_matching_scores = dict()
         for ra_id in available_ras:
             ra = ResearchAssistantSerializer(ResearchAssistant.objects.get(user__id=ra_id), context={"request": request}).data
-            matching_score = 0  # (OUT OF 5)
+            matching_score = 0  # (OUT OF 7)
 
-            # compute study area matching score (OUT OF 3)
-            matching_score += compute_study_area_match_score(ra, project_study_areas)
+            # compute project study area matching score (OUT OF 3)
+            matching_score += compute_project_study_area_match_score(ra, project_study_areas)
+
+            # compute faculty study area matching score (OUT OF 2)
+            matching_score += compute_faculty_study_area_match_score(ra, project.user)
             
             # compute interest to project title & description matching score (OUT OF 1)
             matching_score += compute_interest_match_score(ra, project)
@@ -876,19 +880,19 @@ class RetrieveTaskView(APIView):
 
 
 class RetrieveTasksView(generics.ListAPIView):
-    # should allow to filter by status, due date, assigned RA, project milestone
+    # should allow to filter by status, due date, project milestone
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
     serializer_class = ProjectTaskSerializer
     queryset = ProjectTask.objects.all()
-    filterset_fields = ["name", "status", "due_date", "project_milestone", "assignee", "project_milestone__name"]
+    filterset_fields = ["name", "status", "due_date", "project_milestone", "project_milestone__name"]
 
     def get_queryset(self):
         # retrieve tasks for all project the user is a part of, use ProjectTeam to decide this
-        project_teams = ProjectTeam.objects.filter(user=self.request.user)
+        project_tasks = ProjectTaskAssignment.objects.filter(user=self.request.user)
 
-        # pre-fetch project_milestone for each task
+        # pre-fetch project_milestone for each task, ensure that the task has been assigned to the user
         queryset = ProjectTask.objects.filter(
-            project_milestone__project__in=[project_team.project for project_team in project_teams], assignee=self.request.user
+            project_milestone__project__in=[assigned_task.project_task.project_milestone.project for assigned_task in project_tasks]
         ).prefetch_related("project_milestone")
 
         return queryset
@@ -907,29 +911,98 @@ class UpdateTaskView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
         serializer = ProjectTaskSerializer(project_task, data=request.data, partial=True, context={"request": request})
-        if serializer.is_valid():
-            # if a task does not have an assigned RA, ensure that the status is TODO
-            if project_task.assignee is None:
-                if "assignee" not in request.data.keys():
-                    serializer.validated_data["status"] = ProjectStatus.TODO # type: ignore
-                
-            # ensure the assigned RA is not the project owner and is a project team member
-            if "assignee" in request.data.keys():
-                try:
-                    user = UserAccount.objects.get(id=request.data["assignee"])
-                except UserAccount.DoesNotExist:
-                    return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
-                
-                if not ProjectTeam.objects.filter(project_role__project=project_task.project_milestone.project, user=user).exists():
-                    Response({"error": f"{user.firstname} {user.lastname} is not a member of the project!"}, status=status.HTTP_400_BAD_REQUEST)
-
-                serializer.validated_data["assignee"] = user # type: ignore
-
+        if serializer.is_valid():  
             serializer.save()
             response = serializer.to_representation(project_task)
             return Response(response, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class AssignTaskView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request):
+        if "task_id" not in request.data.keys():
+            return Response({"error": "Task ID is required!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        task_id = request.data["task_id"]
+
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != project_task.project_milestone.project.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        if project_task.status == ProjectStatus.DONE:
+            return Response({"error": "You cannot assign a completed task!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if "assignee" not in request.data.keys():
+            return Response({"error": "Assignee is required!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            assignee = UserAccount.objects.get(id=request.data["assignee"])
+        except UserAccount.DoesNotExist:
+            return Response({"error": "Assignee not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not ProjectTeam.objects.filter(project_role__project=project_task.project_milestone.project, user=assignee).exists():
+            return Response({"error": "Assignee is not a member of the project!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if ProjectTaskAssignment.objects.filter(project_task=project_task, user=assignee).exists():
+            return Response({"error": "Assignee has already been assigned to this task!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        project_task_assignment = ProjectTaskAssignment(
+            project_task=project_task,
+            user=assignee
+        )
+
+        project_task_assignment.save()
+        serializer = ProjectTaskSerializer(project_task, context={"request": request})
+        response = serializer.to_representation(project_task)
+        return Response(response, status=status.HTTP_201_CREATED)
+    
+
+class UnassignTaskView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def delete(self, request, task_id):
+        if "task_id" not in request.data.keys():
+            return Response({"error": "Task ID is required!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        task_id = request.data["task_id"]
+
+        try:
+            project_task = ProjectTask.objects.get(id=task_id)
+        except ProjectTask.DoesNotExist:
+            return Response({"error": "Project task not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != project_task.project_milestone.project.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        if project_task.status == ProjectStatus.DONE:
+            return Response({"error": "You cannot unassign a completed task!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if "assignee" not in request.data.keys():
+            return Response({"error": "Assignee is required!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            assignee = UserAccount.objects.get(id=request.data["assignee"])
+        except UserAccount.DoesNotExist:
+            return Response({"error": "Assignee not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not ProjectTeam.objects.filter(project_role__project=project_task.project_milestone.project, user=assignee).exists():
+            return Response({"error": "Assignee is not a member of the project!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not ProjectTaskAssignment.objects.filter(project_task=project_task, user=assignee).exists():
+            return Response({"error": "Assignee has not been assigned to this task!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        project_task_assignment = ProjectTaskAssignment.objects.get(project_task=project_task, user=assignee)
+        project_task_assignment.delete()
+        serializer = ProjectTaskSerializer(project_task, context={"request": request})
+        response = serializer.to_representation(project_task)
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class DeleteProjectTaskView(APIView):
@@ -1001,7 +1074,59 @@ class UpdateProjectTaskFeedbackView(APIView):
             return Response({"error": "You cannot change feedback that is more than 15 minutes old!"}, status=status.HTTP_400_BAD_REQUEST)
         
         task_feedback.feedback = request.data["feedback"]
+        task_feedback.edited = True
         task_feedback.save()
         project_task = ProjectTask.objects.get(id=task_feedback.project_task.id) # type: ignore
         task_serializer =  ProjectTaskSerializer(project_task, context={"request": request})
         return Response(task_serializer.to_representation(project_task), status=status.HTTP_200_OK)
+    
+
+class GiveBlindFeedbackView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if project.status != ProjectStatus.DONE:
+            return Response({"error": "You cannot give feedback for a project that has not been completed!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not ProjectTeam.objects.filter(project_role__project=project, user=request.user).exists():
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        if BlindProjectFeedback.objects.filter(reviewer=request.user, project=project).exists():
+            return Response({"error": "You have already given feedback for this project!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # ensure RAs can only give feedback to the project owner
+        if request.user.role == Role.RA and project.user.id != request.data["intended_user"]:
+            return Response({"error": "You can only give feedback to the project owner!"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # ensure intended_user is a project member
+            if not ProjectTeam.objects.filter(project_role__project=project, user__id=request.data["intended_user"]).exists():
+                return Response({"error": "The intended user is not a member of the project!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = BlindProjectFeedbackSerializer(data=request.data, context={"request": request})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class RetrieveBlindFeedbacksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != project.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        blind_feedbacks = BlindProjectFeedback.objects.filter(project=project)
+        return Response(BlindProjectFeedbackSerializer(blind_feedbacks, many=True).data, status=status.HTTP_200_OK)

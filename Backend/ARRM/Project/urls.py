@@ -21,9 +21,12 @@ from .views import (
 
     RetrieveProjectMilestoneView, RemoveProjectTaskFromMilestoneView, DeleteProjectMilestoneView,
 
-    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, DeleteProjectTaskView,
+    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, AssignTaskView, 
+    UnassignTaskView, DeleteProjectTaskView,
 
     GiveProjectTaskFeedbackView, RetrieveProjectTaskFeedbacksView, UpdateProjectTaskFeedbackView,
+
+    GiveBlindFeedbackView, RetrieveBlindFeedbacksView, 
 )
 
 urlpatterns = [
@@ -87,10 +90,16 @@ urlpatterns = [
     path("task/get/<int:task_id>/", RetrieveTaskView.as_view(), name="retrieve-task"),
     path("task/get/", RetrieveTasksView.as_view(), name="retrieve-tasks"),
     path("task/update/<int:task_id>/", UpdateTaskView.as_view(), name="update-task"),
+    path("task/assign/", AssignTaskView.as_view(), name="assign-task"),
+    path("task/unassign/", UnassignTaskView.as_view(), name="unassign-task"),
     path("task/delete/<int:task_id>/", DeleteProjectTaskView.as_view(), name="delete-task"),
 
     # PROJECT TASK FEEDBACK ROUTES
     path("task/feedback/give/", GiveProjectTaskFeedbackView.as_view(), name="give-task-feedback"),
     path("task/feedback/get/<int:task_id>/", RetrieveProjectTaskFeedbacksView.as_view(), name="retrieve-project-task-feedbacks"),
     path("task/feedback/update/<int:feedback_id>/", UpdateProjectTaskFeedbackView.as_view(), name="update-project-task-feedback"),
+
+    # BLIND FEEDBACK ROUTES
+    path("blind/feedback/give/", GiveBlindFeedbackView.as_view(), name="give-blind-feedback"),
+    path("blind/feedback/get/<int:task_id>/", RetrieveBlindFeedbacksView.as_view(), name="retrieve-blind-feedbacks"),
 ]
