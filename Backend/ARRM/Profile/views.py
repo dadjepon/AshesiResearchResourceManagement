@@ -9,6 +9,7 @@ from .models import (
     Degree, WritingSample, Interest, ResearchAssistant, 
     ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
 from .serializers import (
+    
     AccountDetailSerializer, DegreeSerializer, WritingSampleSerializer, InterestSerializer, 
     ResearchAssistantSerializer, ResearchAssistantAvailabilitySerializer, FacultySerializer)
 from Account.models import Role, UserAccount
