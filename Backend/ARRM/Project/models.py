@@ -159,17 +159,18 @@ class ProjectMatchScores(models.Model):
     Attributes:
         - project (Project): the project
         - user (UserAccount): the user's account
-        - score (IntegerField): the user's score
+        - score (FloatField): the user's score
         - created_at (DateTimeField): the match's creation date
     """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
-    score = models.IntegerField()
+    score = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.project.title} -> {self.user.email} ({self.score}%)"
+    
     
     @classmethod
     def clean_matches(cls, project):
@@ -234,7 +235,7 @@ class ProjectTask(models.Model):
 
     Attributes:
         - project_milestone (ProjectMilestone): the project milestone
-        - assignee (UserAccount): the RA or Faculty assigned to the task
+        - assignee (UserAccount): the RA or Faculty assigned to the task    (should be one-to-many, remove and create new model)
         - name (CharField): the task's name
         - description (TextField): the task's description
         - status (CharField): the task's status
@@ -243,7 +244,6 @@ class ProjectTask(models.Model):
     """
     
     project_milestone = models.ForeignKey(ProjectMilestone, on_delete=models.CASCADE)
-    assignee = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
@@ -252,6 +252,23 @@ class ProjectTask(models.Model):
     
     def __str__(self):
         return f"{self.project_milestone.project.title} : {self.project_milestone.milestone.name} - {self.name}"
+    
+
+class ProjectTaskAssignment(models.Model):
+    """
+    defines attributes for a ProjectTaskAssignment class to ensure
+    more than one user can be assigned to a task
+
+    Attributes:
+        - project_task (ProjectTask): the project task
+        - assignee (UserAccount): the RA or Faculty assigned to the task
+    """
+
+    project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
+    assignee = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project_task.name} -> {self.assignee.email}"
 
 
 class ProjectTaskFeedback(models.Model):
@@ -271,6 +288,33 @@ class ProjectTaskFeedback(models.Model):
     target_member = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="target_member")
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    edited = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.project_task.name} : {self.target_member.email} - {self.project_task.name}"
+
+
+class BlindProjectFeedback(models.Model):
+    """
+    defines attributes for a blind feedback system for a project
+    (blind because info about the reviewer isn't returned during query
+    but it is stored for permissions handling)
+
+    Attributes:
+        - project (Project): the project
+        - reviewer (UserAccount): the reviewer
+        - intended_user (UserAccount): the user being reviewed
+        - rating (FloatField): the rate (out of 5) for the intended_user
+        - comment (TextField): the reviewer's comment on the rating
+        - time_stamp (DateTimeField): the date the comment was posted
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    intended_user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="intended_user")
+    rating = models.FloatField()
+    comment = models.TextField()
+    time_stamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.intended_user.firstname} {self.intended_user.lastname} ({self.rating}): {self.comment} at {self.time_stamp}"
