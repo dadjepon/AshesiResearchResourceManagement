@@ -107,8 +107,8 @@ class StudyArea(models.TextChoices):
     Market_Research = "Market Research", _("Market Research")
     Financial_Accounting = "Financial Accounting", _("Financial Accounting")
     International_Trade_Policy = "International Trade & Policy", _("International Trade & Policy")
-    Organisations_Behaviour = "Organisational Behaviour", _("Organisational Behaviour")
-    Managerial_Behaviour = "Managerial Behaviour", _("Managerial Behaviour")
+    Organizations_Behavior = "Organizational Behavior", _("Organizational Behavior")
+    Managerial_Behavior = "Managerial Behavior", _("Managerial Behavior")
     Marketing = "Marketing", _("Marketing")
     Operations_Management = "Operations Management", _("Operations Management")
     International_Finance = "International Finance", _("International Finance")
@@ -238,3 +238,136 @@ class FacultyInterests(models.Model):
 
     def __str__(self):
         return f"{self.faculty.user.firstname} {self.faculty.user.lastname}: {self.interest.name}"
+    
+
+class WorkExperiences(models.Model):
+    """
+    defines attributes for a WorkExperiences class
+
+    Attributes:
+        - user (UserAccount): the user's account for the work experience
+        - title (CharField): the title of the work experience
+        - 
+    """
+
+    pass
+
+
+class Skills(models.TextChoices):
+    """
+    defines choices for skills
+
+    Artificial Intelligence:
+    Machine Learning
+    Natural Language Processing
+    Neural Networks
+
+    Algorithm:
+    Data Structures
+    Sorting Algorithms
+    Dynamic Programming
+
+    Computer Engineering:
+    Digital Circuit Design
+    Embedded Systems
+    Microprocessor Architecture
+
+    Cryptography:
+    Encryption and Decryption
+    Hash Functions
+    Cryptographic Protocols
+
+    Robotics:
+    Kinematics
+    Control Systems
+    Sensor Integration
+
+    Computer Vision:
+    Image Processing
+    Object Recognition
+    Feature Extraction
+
+    Software Engineering:
+    Agile Methodologies
+    Software Testing
+    Code Versioning
+    Backend Development
+    Frontend Development
+    Database Management
+
+    Computational Science:
+    Numerical Simulations
+    Scientific Computing
+    Parallel Computing
+
+    Numerical Analysis:
+    Numerical Methods
+    Root Finding Algorithms
+    Interpolation
+
+    Market Research:
+    Survey Design
+    Data Analysis
+    Consumer Behavior    
+
+    Financial Accounting:
+    Financial Reporting
+    Auditing
+    Budgeting and Forecasting
+
+    International Trade & Policy:
+    Global Market Analysis
+    Trade Regulations
+    Diplomacy in International Trade
+
+    Organizational Behavior:
+    Team Dynamics
+    Leadership Development
+    Organizational Culture Analysis
+
+    Managerial Behavior:
+    Decision-Making Strategies
+    Conflict Resolution
+    Change Management
+
+    Marketing:
+    Market Segmentation
+    Digital Marketing
+    Brand Management
+
+    Operations Management:
+    Quality Control
+    Supply Chain Optimization
+    Lean Manufacturing
+
+    International Finance:
+    Risk Management
+    Global Investment Strategies
+
+    Supply-Chain Management:
+    Logistics Planning
+    Inventory Management
+    Supplier Relationship Management
+
+    Business Law:
+    Contract Law
+    Employment Law
+    Intellectual Property Law
+
+    Competitive Strategy:
+    SWOT Analysis
+    Business Planning
+    Competitive Intelligence
+
+    Corporate Finance:
+    Capital Budgeting
+    Mergers and Acquisitions
+    Financial Modeling
+
+    Product Development:
+    New Product Launch
+    Innovation Management
+    User-Centered Design
+    """
+
+    pass
