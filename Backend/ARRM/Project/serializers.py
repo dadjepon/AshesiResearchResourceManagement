@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 
 from .models import (
     ProjectStatus, Project, ProjectStudyArea, TeamMemberRole, ProjectRole, ProjectTeam, ProjectTeamRequest,
-    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskFeedback,
+    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskAssignment,
+    ProjectTaskFeedback, BlindProjectFeedback,
 )
 from Profile.models import StudyArea
 from Account.models import Role, UserAccount
@@ -383,17 +384,8 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTask
-        fields = ["id", "project_milestone", "assignee", "name", 
+        fields = ["id", "project_milestone", "name", 
                   "description", "status", "hours_required", "due_date"]
-    
-    def validate_assignee(self, value):
-        if not UserAccount.objects.filter(id=value.id).exists():
-            raise serializers.ValidationError(f"{value.email} is not a valid account!")
-        
-        if value.role == Role.ADMIN:
-            raise serializers.ValidationError(f"{value.email} is an admin and cannot be assigned to a task!")
-        
-        return value
     
     def validate_name(self, value):
         if len(value) > 100:
@@ -442,7 +434,11 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["project"] = instance.project_milestone.project.title
         representation["project_milestone"] = instance.project_milestone.milestone.name
-        representation["assignee"] = instance.assignee.email if instance.assignee else None
+
+        # retrieve task assignees
+        representation["assignees"] = []
+        for assignee in ProjectTaskAssignment.objects.filter(project_task=instance.id):
+            representation["assignees"].append(assignee.user.email)
 
         # retrieve feedbacks
         feedbacks = []
@@ -458,7 +454,7 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTaskFeedback
-        fields = ["id", "project_task", "target_member", "feedback", "created_at"]
+        fields = ["id", "project_task", "target_member", "feedback", "created_at", "edited"]
 
     def validate_project_task(self, value):
         if not ProjectTask.objects.filter(id=value.id).exists():
@@ -467,6 +463,8 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
         return value
     
     def validate_target_member(self, value):
+        if not ProjectTeam.objects.filter(user=value).exists():
+            raise serializers.ValidationError(f"{value.email} is not a member of ")
         if not UserAccount.objects.filter(id=value.id).exists():
             raise serializers.ValidationError(f"{value.email} is an admin and cannot be the target of a task feedback!")
         
@@ -474,8 +472,8 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
     
     def validate(self, attrs):        
         # ensure that the targeted Project Member is assigned to the Project Task
-        if attrs["project_task"].assignee != attrs["target_member"] and attrs["project_task"].project_milestone.project.user != attrs["target_member"]:
-            # ProjectTeam.objects.create(project=attrs["project_task"].project_milestone.project, user=attrs["target_member"])
+        if (not ProjectTaskAssignment.objects.filter(project_task=attrs["project_task"], user=attrs["target_member"]).exists() and
+             attrs["project_task"].project_milestone.project.user != attrs["target_member"]):
             raise serializers.ValidationError("Target Project member is not assigned to this project task!")
         
         # ensure that the reviewer is not the target member
@@ -490,4 +488,46 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["reviewer"] = instance.reviewer.email
         representation["target_member"] = instance.target_member.email
+        return representation
+
+
+class BlindProjectFeedbackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BlindProjectFeedback
+        fields = ["id", "project", "reviewer", "intended_user", "rating",
+                  "comment", "time_stamp"]
+        
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project!")
+        
+        return value
+    
+    def validate_rating(self, value):
+        if value < 0 or value > 5:
+            raise serializers.ValidationError("Invalid rating!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if attrs["reviewer"] == attrs["intended_user"]:
+            raise serializers.ValidationError("Reviewer cannot be the intended user!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation.pop("reviewer")  # remove reviewer from representation
+        representation["intended_user"] = instance.intended_user.firstname + " " + instance.intended_user.lastname
+        representation["time_stamp"] = instance.time_stamp.strftime("%Y-%m-%d %H:%M:%S")    # order by time stamp
+        
+        # retrieve average rating
+        average_score = 0
+        feedbacks = BlindProjectFeedback.objects.filter(project=instance.project)
+        for feedback in feedbacks:
+            average_score += feedback.rating
+        average_score /= len(feedbacks)
+        representation["average_rating"] = average_score
+
         return representation
