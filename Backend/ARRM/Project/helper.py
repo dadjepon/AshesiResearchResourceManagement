@@ -1,9 +1,9 @@
-from .models import ProjectTask, ProjectTeam, Milestone
+from .models import ProjectTask, ProjectTaskAssignment, ProjectTeam, Milestone
 from Profile.models import ResearchAssistant, ResearchAssistantAvailability, Degree
 
 
 REQUIRED_WEEKLY_HOURS = 40
-TOTAL_MATCH_SCORE = 5
+TOTAL_MATCH_SCORE = 7
 
 
 PROJECT_MILESTONE_TEMPLATE_DICT = {
@@ -62,7 +62,7 @@ def get_cumulative_task_hours(project):
     return cumulative_task_hours
 
 
-def get_ra_available_hours(project):
+def get_ra_available_hours():
     ras = ResearchAssistant.objects.all()
     ra_hours = dict()
 
@@ -94,12 +94,12 @@ def get_ra_project_hours(ra):
     total_project_hours = 0
 
     for team in project_team:
-        project_tasks = ProjectTask.objects.filter(project_milestone__project=team.project, assignee=ra.user)
+        assigned_tasks = ProjectTaskAssignment.objects.filter(project_task__project_milestone__project=team.project, assignee=ra.user)
         project_hours = 0
 
-        for project_task in project_tasks:
-            if project_task.hours_required:
-                project_hours += project_task.hours_required
+        for assigned_task in assigned_tasks:
+            if assigned_task.project_task.hours_required:
+                project_hours += assigned_task.project_task.hours_required
         
         total_project_hours += project_hours
 
@@ -116,7 +116,7 @@ def get_available_ras(ra_available_hours, project, assigned_project_hours):
     return available_ras
 
 
-def compute_study_area_match_score(ra, project_study_areas):
+def compute_project_study_area_match_score(ra, project_study_areas):
     matching_score = 0
     total_score = 0
     study_areas = set(interest["study_area"] for interest in ra["interests"])
@@ -127,6 +127,20 @@ def compute_study_area_match_score(ra, project_study_areas):
         total_score += 1
 
     return (matching_score / total_score) * 3
+
+
+def compute_faculty_study_area_match_score(ra, faculty):
+    matching_score = 0
+    total_score = 0
+    ra_study_areas = set(interest["study_area"] for interest in ra["interests"])
+    faculty_study_areas = set(interest.study_area for interest in faculty.interests.all())
+
+    for area in ra_study_areas:
+        if area in faculty_study_areas:
+            matching_score += 1
+        total_score += 1
+
+    return (matching_score / total_score) * 2
 
 
 def compute_interest_match_score(ra, project):
