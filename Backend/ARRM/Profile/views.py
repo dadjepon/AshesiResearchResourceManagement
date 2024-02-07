@@ -45,6 +45,7 @@ class RetrieveUserNotificationsView(generics.ListAPIView):
     def get(self, request):
         notifications = Notification.objects.filter(user=request.user)
         serializer = NotificationSerializer(notifications, many=True, context={"request": request})
+        serializer.data.sort(key=lambda x: x["created_at"], reverse=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 

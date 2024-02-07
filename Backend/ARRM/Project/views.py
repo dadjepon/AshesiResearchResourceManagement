@@ -20,7 +20,7 @@ from .helper import (
     get_available_ras, compute_faculty_study_area_match_score,)
 from Account.permissions import IsBlacklistedToken
 from Account.models import Role, UserAccount
-from Profile.models import Faculty, ResearchAssistant, StudyArea, Degree
+from Profile.models import Notification, ResearchAssistant, StudyArea
 from Profile.serializers import ResearchAssistantSerializer
 
 
@@ -46,12 +46,36 @@ class AddProjectView(APIView):
                             project_study_area.save()
 
             # add user as project team member
-            project_team = ProjectTeam(
+            # if the admin team member role does not exist, create it
+            if not TeamMemberRole.objects.filter(name="Admin").exists():
+                admin_role = TeamMemberRole(
+                    name="Admin",
+                    user=UserAccount.objects.filter(role=Role.ADMIN).first()
+                )
+                admin_role.save()
+            else:
+                admin_role = TeamMemberRole.objects.get(name="Admin")
+
+            # create project role
+            project_role = ProjectRole(
                 project=project,
-                user=request.user
+                team_member_role=admin_role
+            )
+            project_role.save()
+
+            project_team = ProjectTeam(
+                user=request.user,
+                project_role=project_role
             )
             project_team.save()
 
+            # create notification for project member addition
+            notification = Notification(
+                user=request.user,
+                title="Project Membership!",
+                message=f"You have been added as a member of the '{project.title}' project!",
+            )
+            notification.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -82,7 +106,7 @@ class RetrieveProjectsView(generics.ListAPIView):
     
     def get_queryset(self):
         projects = ProjectTeam.objects.filter(user=self.request.user)
-        return Project.objects.filter(id__in=[project.project.id for project in projects], is_deleted=False) # type: ignore
+        return Project.objects.filter(id__in=[project.project.id for project in projects], is_deleted=False)
 
 
 class RetrievePublicProjectsView(generics.ListAPIView):
@@ -144,11 +168,26 @@ class ChangeProjectVisibilityView(APIView):
         
         if visibility == "public":
             if not project.description or not project.start_date or not project.end_date or not project.estimated_project_hours:
+                # create notification for failure
+                notification = Notification(
+                    user=request.user,
+                    title="Project Visibility Update Failed!",
+                    message=f"{project.title}'s visibility has not been updated to public. Project description, start date, end date and estimated weekly hours are required for public projects! Please update the project details and try again!", 
+                )
+                notification.save()
                 return Response({"error": "Project description, start date, end date and estimated weekly hours are required for public projects!"}, 
                                 status=status.HTTP_400_BAD_REQUEST)
         
         project.visibility = visibility
         project.save()
+
+        # create notification for project visibility update
+        notification = Notification(
+            user=request.user,
+            title="Project Visibility Updated!",
+            message=f"{project.title}'s visibility has been updated to {visibility} successfully!", 
+        )
+        notification.save()
         response = ProjectSerializer(project, context={"request": request}).to_representation(project)
         return Response(response, status=status.HTTP_200_OK)
     
@@ -194,8 +233,16 @@ class DeleteProjectView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
         # set is_deleted to True
-        project.is_deleted = True # type: ignore
+        project.is_deleted = True
         project.save()
+
+        # create notification for project deletion
+        notification = Notification(
+            user=request.user,
+            title="Project Deleted!",
+            message=f"{project.title} has been moved to trash successfully! You can restore it from the trash if you deleted it by mistake!", 
+        )
+        notification.save()
         return Response({"success": f"{project.title} has been moved to trash!"}, status=status.HTTP_200_OK)
     
 
@@ -212,7 +259,7 @@ class RestoreProjectView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
         # set is_deleted to False
-        project.is_deleted = False # type: ignore
+        project.is_deleted = False
         project.save()
         return Response({"success": f"{project.title} has been restored from trash successfully!"}, status=status.HTTP_200_OK)
     
@@ -226,7 +273,7 @@ class DeleteProjectPermanentlyView(APIView):
         except Project.DoesNotExist:
             return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
         
-        if not project.is_deleted: # type: ignore
+        if not project.is_deleted:
             return Response({"error": f"{project.title} is not in the trash!"}, status=status.HTTP_400_BAD_REQUEST)
         if project.user != request.user:
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
@@ -358,6 +405,14 @@ class RequestProjectMembershipView(APIView):
             user=request.user
         )
         project_team_request.save()
+
+        # create notification for request
+        notification = Notification(
+            user=project_role.project.user,
+            title="Project Membership Request!",
+            message=f"{request.user.email} has requested to join the '{project_role.project.title}' project as a {project_role.name}!", 
+        )
+        notification.save()
         return Response({"success": "Project membership request sent successfully!"}, status=status.HTTP_201_CREATED)
 
 
@@ -399,6 +454,14 @@ class AcceptProjectMembershipView(APIView):
         )
         project_team.save()
         project_team_request.delete()
+
+        # create notification for acceptance
+        notification = Notification(
+            user=project_team_request.user,
+            title="Project Membership Request Accepted!",
+            message=f"Your request to join the '{project_team_request.project_role.project.title}' project as a {project_team_request.project_role.name} has been accepted!", 
+        )
+        notification.save()
         return Response({"success": f"{project_team.user.email} is now a member of the '{project_team.project_role.project.title}' project!"}, 
                         status=status.HTTP_200_OK)
 
@@ -416,6 +479,14 @@ class RejectProjectMembershipView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
         project_team_request.delete()
+
+        # create notification for rejection
+        notification = Notification(
+            user=project_team_request.user,
+            title="Project Membership Request Rejected!",
+            message=f"Your request to join the '{project_team_request.project_role.project.title}' project as a {project_team_request.project_role.name} has been rejected!", 
+        )
+        notification.save()
         return Response({"success": "Project membership request rejected successfully!"}, status=status.HTTP_200_OK)
 
 
@@ -1033,7 +1104,7 @@ class GiveProjectTaskFeedbackView(APIView):
             serializer.save()
             project_task = ProjectTask.objects.get(id=request.data["project_task"])
             task_serializer =  ProjectTaskSerializer(project_task, context={"request": request})
-            return Response(task_serializer.to_representation(project_task), status=status.HTTP_201_CREATED) # type: ignore
+            return Response(task_serializer.to_representation(project_task), status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -1076,7 +1147,7 @@ class UpdateProjectTaskFeedbackView(APIView):
         task_feedback.feedback = request.data["feedback"]
         task_feedback.edited = True
         task_feedback.save()
-        project_task = ProjectTask.objects.get(id=task_feedback.project_task.id) # type: ignore
+        project_task = ProjectTask.objects.get(id=task_feedback.project_task.id)
         task_serializer =  ProjectTaskSerializer(project_task, context={"request": request})
         return Response(task_serializer.to_representation(project_task), status=status.HTTP_200_OK)
     
