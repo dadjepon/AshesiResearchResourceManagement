@@ -6,12 +6,12 @@ from rest_framework.permissions import IsAdminUser
 import os
 
 from .models import (
-    Degree, WritingSample, Interest, ResearchAssistant, 
+    Notification, Degree, WritingSample, Interest, ResearchAssistant, 
     ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
 from .serializers import (
     
-    AccountDetailSerializer, DegreeSerializer, WritingSampleSerializer, InterestSerializer, 
-    ResearchAssistantSerializer, ResearchAssistantAvailabilitySerializer, FacultySerializer)
+    AccountDetailSerializer, NotificationSerializer, DegreeSerializer, WritingSampleSerializer, 
+    InterestSerializer, ResearchAssistantSerializer, ResearchAssistantAvailabilitySerializer, FacultySerializer)
 from Account.models import Role, UserAccount
 from Account.permissions import IsBlacklistedToken
 
@@ -20,7 +20,7 @@ class RetrieveAllUsersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
     serializer_class = AccountDetailSerializer
     queryset = UserAccount.objects.all()
-    filterset_fields = ["first_name", "last_name", "email", "role", "is_active"]
+    filterset_fields = ["firstname", "lastname", "email", "role", "is_active"]
 
     def get_queryset(self):
         users = UserAccount.objects.filter(is_deleted=False)
@@ -37,6 +37,33 @@ class RetrieveUserAccountDetailsView(APIView):
             return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
         
         return Response(AccountDetailSerializer(user, context={"request": request}).data, status=status.HTTP_200_OK)
+
+
+class RetrieveUserNotificationsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request):
+        notifications = Notification.objects.filter(user=request.user)
+        serializer = NotificationSerializer(notifications, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class MarkNotificationAsReadOrUnreadView(APIView):
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def get(self, request, notification_id):
+        try:
+            notification = Notification.objects.get(id=notification_id)
+        except Notification.DoesNotExist:
+            return Response({"error": "Notification not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = NotificationSerializer(notification, context={"request": request})
+        if notification.is_read:
+            notification.is_read = False
+        else:
+            notification.is_read = True
+        notification.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AddDegreeView(APIView):
@@ -108,6 +135,14 @@ class VerifyDegreeView(APIView):
         
         degree.is_verified = True
         degree.save()
+
+        # create a notification for the user
+        Notification.objects.create(
+            user=degree.user, 
+            title=f"{degree.major} from {degree.university} verified!",
+            message=f"Your degree {degree.type} in {degree.major} from {degree.university} has been verified by the admin, {request.user.firstname} {request.user.lastname}."
+        )
+
         return Response({"success": "Degree verified successfully"}, status=status.HTTP_200_OK)
 
 
@@ -125,6 +160,14 @@ class DeleteDegreeView(APIView):
         
         degree.is_deleted = True
         degree.save()
+
+        # create a notification for the user
+        Notification.objects.create(
+            user=degree.user, 
+            title=f"{degree.major} from {degree.university} moved to trash!",
+            message=f"Your degree {degree.type} from {degree.university} has been moved to trash. You can restore it anytime from the trash." 
+        )
+
         return Response({"success": "Degree has been moved to trash!"}, status=status.HTTP_200_OK)
     
 

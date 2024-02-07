@@ -9,6 +9,28 @@ from .helper import (transcript_upload_path, sample_upload_path, profile_picture
                      cv_upload_path)
 
 
+class Notification(models.Model):
+    """
+    defines a notification object
+
+    Attributes:
+        - user (UserAccount): the user's account for the notification
+        - title (CharField): title of notification
+        - message (TextField): message of notification
+        - created_at (DateTimeField): date notification was created
+        - is_read (BooleanField): whether the notification has been read
+    """
+
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification: {self.user.firstname} {self.user.lastname} - {self.title}"
+
+
 class DegreeType(models.TextChoices):
     """
     defines choices for degree types

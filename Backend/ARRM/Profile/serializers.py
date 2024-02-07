@@ -3,9 +3,9 @@ from rest_framework import serializers
 from datetime import datetime
 
 from .models import (
-    Degree, DegreeType, WritingSample, StudyArea, Interest, Department, 
+    Notification, Degree, DegreeType, WritingSample, StudyArea, Interest, Department, 
     ResearchAssistant, ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
-from .helper import LINKIN_PROFILE_REGEX
+from .helper import LINKEDIN_PROFILE_REGEX
 from Account.models import UserAccount, Role
 from Miscelleneous.models import Semester
 from Miscelleneous.serializers import SemesterSerializer
@@ -40,6 +40,13 @@ class AccountDetailSerializer(serializers.ModelSerializer):
 
         representation.update(extended_rep)
         return representation
+    
+
+class NotificationSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Notification
+        fields = ["id", "user", "title", "message", "created_at", "is_read"]
 
 
 class DegreeSerializer(serializers.ModelSerializer):
@@ -168,7 +175,7 @@ class ResearchAssistantSerializer(serializers.ModelSerializer):
         return self.context["request"].user.email
     
     def validate_linkedin_url(self, value):
-        if not re.match(LINKIN_PROFILE_REGEX, value):
+        if not re.match(LINKEDIN_PROFILE_REGEX, value):
             raise serializers.ValidationError("Invalid linkedin url!")
         
         return value

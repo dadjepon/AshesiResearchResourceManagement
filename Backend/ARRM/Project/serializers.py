@@ -1,4 +1,3 @@
-from asyncio import tasks
 import re
 from rest_framework import serializers
 from datetime import datetime, timedelta
@@ -8,7 +7,6 @@ from .models import (
     ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskAssignment,
     ProjectTaskFeedback, BlindProjectFeedback,
 )
-from Profile.models import StudyArea
 from Account.models import Role, UserAccount
 
 
@@ -174,6 +172,7 @@ class TeamMemberRoleSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["user"] = instance.user.email
+        representation["user_id"] = instance.user.id
         return representation
     
 
@@ -204,7 +203,8 @@ class ProjectRoleSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["project"] = instance.project.title
-        representation["team_member_role"] = instance.team_member_role.name
+        representation["project_id"] = instance.project.id
+        representation["team_member_role"] = instance.id
         return representation
     
 
@@ -236,46 +236,22 @@ class ProjectTeamSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["project_role"] = instance.project_role.team_member_role.name
+        representation["project_role"] = instance.id
         return representation
 
 
 class ProjectTeamRequestSerializer(serializers.ModelSerializer):
-    project = serializers.SerializerMethodField("get_project")
-    user = serializers.SerializerMethodField("get_user")
-    role = serializers.SerializerMethodField("get_role")
 
     class Meta:
         model = ProjectTeamRequest
         fields = ["id", "project", "user", "role"]
 
-    def get_project(self, obj):
-        return obj.project.title
-    
-    def get_user(self, obj):
-        return obj.user.email
-    
-    def get_role(self, obj):
-        return obj.project_role.team_member_role.name
-
 
 class ProjectTeamInvitationSerializer(serializers.ModelSerializer):
-    project = serializers.SerializerMethodField("get_project")
-    user = serializers.SerializerMethodField("get_user")
-    role = serializers.SerializerMethodField("get_role")
 
     class Meta:
         model = ProjectTeamInvitation
         fields = ["id", "project", "user", "role"]
- 
-    def get_project(self, obj):
-        return obj.project.title
-    
-    def get_user(self, obj):
-        return obj.user.email
-    
-    def get_role(self, obj):
-        return obj.project_role.team_member_role.name
     
 
 class ProjectMatchScoresSerializer(serializers.ModelSerializer):
@@ -311,7 +287,8 @@ class ProjectMatchScoresSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["project"] = instance.project.title
-        representation["user"] = instance.user.email
+        representation["user_email"] = instance.user.email
+        representation["user_id"] = instance.user.id
         return representation
 
 
@@ -438,7 +415,7 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
         # retrieve task assignees
         representation["assignees"] = []
         for assignee in ProjectTaskAssignment.objects.filter(project_task=instance.id):
-            representation["assignees"].append(assignee.user.email)
+            representation["assignees"].append({"email": assignee.user.email, "user_id": assignee.user.id})
 
         # retrieve feedbacks
         feedbacks = []
@@ -486,8 +463,8 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["reviewer"] = instance.reviewer.email
-        representation["target_member"] = instance.target_member.email
+        representation["reviewer_id"] = instance.reviewer.id
+        representation["target_member_id"] = instance.target_member.id
         return representation
 
 
@@ -520,6 +497,7 @@ class BlindProjectFeedbackSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation.pop("reviewer")  # remove reviewer from representation
         representation["intended_user"] = instance.intended_user.firstname + " " + instance.intended_user.lastname
+        representation["intended_user_id"] = instance.intended_user.id
         representation["time_stamp"] = instance.time_stamp.strftime("%Y-%m-%d %H:%M:%S")    # order by time stamp
         
         # retrieve average rating

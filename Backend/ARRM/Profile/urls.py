@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import (
-    RetrieveUserAccountDetailsView,
+    RetrieveAllUsersView, RetrieveUserAccountDetailsView,
+
+    RetrieveUserNotificationsView, MarkNotificationAsReadOrUnreadView,
 
     AddDegreeView, RetrieveDegreeView, RetrieveDegreesView, UpdateDegreeView, 
     VerifyDegreeView, DeleteDegreeView, RestoreDegreeView, DeleteDegreePermanentlyView,
@@ -19,7 +21,12 @@ from .views import (
 
 urlpatterns = [
     # USER ACCOUNT ROUTES
+    path("get/all/", RetrieveAllUsersView.as_view(), name="retrieve-all-users"),
     path("get/<int:user_id>/", RetrieveUserAccountDetailsView.as_view(), name="retrieve-user-account-details"),
+
+    # NOTIFICATION ROUTES
+    path("notification/get/", RetrieveUserNotificationsView.as_view(), name="retrieve-user-notifications"),
+    path("notification/mark/", MarkNotificationAsReadOrUnreadView.as_view(), name="mark-notification-as-read-or-unread"),
 
     # DEGREE ROUTES
     path("degree/add/", AddDegreeView.as_view(), name="add-degree"),
