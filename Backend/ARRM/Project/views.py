@@ -503,6 +503,14 @@ class DeleteProjectMembershipRequestView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
         project_team_request.delete()
+
+        # create notification for request deletion
+        notification = Notification(
+            user=project_team_request.user,
+            title=f"Project Membership Deleted!",
+            message=f"You deleted your membership request to the project: {project_team_request.project_role.project.title}."
+        )
+        notification.save()
         return Response({"success": "Project membership request deleted successfully!"}, status=status.HTTP_200_OK)
 
 
@@ -537,6 +545,14 @@ class InviteResearchAssistantView(APIView):
             user=user
         )
         project_team_invitation.save()
+
+        # create notification for invitation to invitee
+        notification = Notification(
+            user=user,
+            title="Project Membership Invitation!",
+            message=f"You have been invited to join the '{project_role.project.title}' project as a {project_role.name}!", 
+        )
+        notification.save()
         return Response({"success": f"{user.email} has been invited to the '{project_role.project.title}' project!"}, status=status.HTTP_201_CREATED)
 
 
@@ -578,6 +594,15 @@ class AcceptProjectInvitationView(APIView):
         )
         project_team.save()
         project_team_invitation.delete()
+        
+        # create notification for acceptance to project owner
+        notification = Notification(
+            user=project_team_invitation.project_role.project.user,
+            title="Project Membership Invitation Accepted!",
+            message=f"{project_team_invitation.user.firstname} {project_team_invitation.user.lastname} has accepted the invitation to join the 
+            '{project_team_invitation.project_role.project.title}' project as a {project_team_invitation.project_role.name}!", 
+        )
+        notification.save()
         return Response({"success": f"You are now a member of the '{project_team.project_role.project.title}' project!"}, 
                         status=status.HTTP_200_OK)
 
@@ -595,6 +620,15 @@ class DeclineProjectInvitationView(APIView):
             return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
         
         project_team_invitation.delete()
+
+        # create notification for rejection to project owner
+        notification = Notification(
+            user=project_team_invitation.project_role.project.user,
+            title="Project Membership Invitation Declined!",
+            message=f"{project_team_invitation.user.firstname} {project_team_invitation.user.lastname} has declined the invitation to join the 
+            '{project_team_invitation.project_role.project.title}' project as a {project_team_invitation.project_role.name}!", 
+        )
+        notification.save()
         return Response({"success": "Project invitation rejected successfully!"}, status=status.HTTP_200_OK)
 
 
@@ -646,6 +680,14 @@ class RemoveProjectTeamMemberView(APIView):
             return Response({"error": "You cannot remove yourself from the project!"}, status=status.HTTP_400_BAD_REQUEST)
         
         project_team_member.delete()
+
+        # create notification for removal to project team member
+        notification = Notification(
+            user=project_team_member.user,
+            title="Project Membership Removed!",
+            message=f"You have been removed from the '{project_team_member.project_role.project.title}' project!", 
+        )
+        notification.save()
         return Response({"success": "Project team member removed successfully!"}, status=status.HTTP_200_OK)
     
 
@@ -1030,6 +1072,14 @@ class AssignTaskView(APIView):
         )
 
         project_task_assignment.save()
+
+        # create notification for assignment
+        notification = Notification(
+            user=assignee,
+            title="Project Task Assignment!",
+            message=f"You have been assigned to the '{project_task.name}' task in the '{project_task.project_milestone.project.title}' project!", 
+        )
+        notification.save()
         serializer = ProjectTaskSerializer(project_task, context={"request": request})
         response = serializer.to_representation(project_task)
         return Response(response, status=status.HTTP_201_CREATED)
@@ -1071,6 +1121,14 @@ class UnassignTaskView(APIView):
         
         project_task_assignment = ProjectTaskAssignment.objects.get(project_task=project_task, user=assignee)
         project_task_assignment.delete()
+
+        # create notification for unassigned task
+        notification = Notification(
+            user=assignee,
+            title="Unassigned from Project Task!",
+            message=f"You have been unassigned from the '{project_task.name}' task in the '{project_task.project_milestone.project.title}' project!", 
+        )
+        notification.save()
         serializer = ProjectTaskSerializer(project_task, context={"request": request})
         response = serializer.to_representation(project_task)
         return Response(response, status=status.HTTP_200_OK)
@@ -1092,6 +1150,17 @@ class DeleteProjectTaskView(APIView):
             return Response({"error": "You cannot delete a completed task!"}, status=status.HTTP_400_BAD_REQUEST)
         
         project_task.delete()
+
+        # notify assignees of task deletion
+        assignees = ProjectTaskAssignment.objects.filter(project_task=project_task)
+        for assignee in assignees:
+            notification = Notification(
+                user=assignee.user,
+                title="Project Task Deleted!",
+                message=f"The '{project_task.name}' task in the '{project_task.project_milestone.project.title}' project,, to which you were assigned, has been deleted!", 
+            )
+            notification.save()
+
         return Response({"success": "Project task deleted successfully!"}, status=status.HTTP_200_OK)
     
 
@@ -1104,6 +1173,14 @@ class GiveProjectTaskFeedbackView(APIView):
             serializer.save()
             project_task = ProjectTask.objects.get(id=request.data["project_task"])
             task_serializer =  ProjectTaskSerializer(project_task, context={"request": request})
+
+            # notify feedback recipient of new feedback
+            notification = Notification(
+                user=serializer.validated_data["target_member"],
+                title="New Project Task Feedback!",
+                message=f"You have received feedback for the '{project_task.name}' task in the '{project_task.project_milestone.project.title}' project!", 
+            )
+            notification.save()
             return Response(task_serializer.to_representation(project_task), status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -235,7 +235,6 @@ class ProjectTask(models.Model):
 
     Attributes:
         - project_milestone (ProjectMilestone): the project milestone
-        - assignee (UserAccount): the RA or Faculty assigned to the task    (should be one-to-many, remove and create new model)
         - name (CharField): the task's name
         - description (TextField): the task's description
         - status (CharField): the task's status
