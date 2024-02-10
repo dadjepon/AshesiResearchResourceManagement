@@ -1,4 +1,4 @@
-LINKIN_PROFILE_REGEX = r"https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+\/$"
+LINKEDIN_PROFILE_REGEX = r"https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+\/$"
 
 
 def transcript_upload_path(instance, filename):

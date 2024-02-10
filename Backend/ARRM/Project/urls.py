@@ -6,6 +6,9 @@ from .views import (
 
     ProjectMatchScoresView, RetrieveProjectMatchScoresView,
 
+    CreateTeamMemberRoleView, RetrieveTeamMemberRolesView,DeleteTeamMemberRoleView,
+    AddRoleToProjectView, RemoveRoleFromProjectView, RetrieveProjectRolesView,
+
     RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
     AcceptProjectMembershipView, RejectProjectMembershipView, DeleteProjectMembershipRequestView,
 
@@ -18,9 +21,12 @@ from .views import (
 
     RetrieveProjectMilestoneView, RemoveProjectTaskFromMilestoneView, DeleteProjectMilestoneView,
 
-    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, DeleteProjectTaskView,
+    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, AssignTaskView, 
+    UnassignTaskView, DeleteProjectTaskView,
 
     GiveProjectTaskFeedbackView, RetrieveProjectTaskFeedbacksView, UpdateProjectTaskFeedbackView,
+
+    GiveBlindFeedbackView, RetrieveBlindFeedbacksView, 
 )
 
 urlpatterns = [
@@ -39,13 +45,23 @@ urlpatterns = [
     # PROJECT MATCH SCORES ROUTES
     path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
     path("match/get/<int:project_id>/", RetrieveProjectMatchScoresView.as_view(), name="retrieve-project-match-scores"),
+
+    # PROJECT ROLE ROUTES
+    path("role/create/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
+    path("role/get/", RetrieveTeamMemberRolesView.as_view(), name="retrieve-team-member-roles"),
+    path("role/delete/<int:role_id>/", DeleteTeamMemberRoleView.as_view(), name="delete-team-member-role"),
+
+    # PROJECT ROLE ASSIGNMENT ROUTES
+    path("role/add/", AddRoleToProjectView.as_view(), name="add-role-to-project"),
+    path("role/remove/", RemoveRoleFromProjectView.as_view(), name="remove-role-from-project"),
+    path("role/get/<int:project_id>/", RetrieveProjectRolesView.as_view(), name="retrieve-project-roles"),
     
     # PROJECT TEAM
     path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
     path("team/remove/<int:project_member_id>/", RemoveProjectTeamMemberView.as_view(), name="remove-project-team-member"),
 
     # PROJECT MEMBERSHIP ROUTES
-    path("membership/request/<int:project_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
+    path("membership/request/<int:project_role_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
     path("membership/request/get/<int:project_id>/", RetrieveProjectMembershipRequestsView.as_view(), name="retrieve-project-membership-requests"),
     path("membership/request/accept/<int:project_request_id>/", AcceptProjectMembershipView.as_view(), name="accept-project-membership-request"),
     path("membership/request/reject/<int:project_request_id>/", RejectProjectMembershipView.as_view(), name="reject-project-membership-request"),
@@ -74,10 +90,16 @@ urlpatterns = [
     path("task/get/<int:task_id>/", RetrieveTaskView.as_view(), name="retrieve-task"),
     path("task/get/", RetrieveTasksView.as_view(), name="retrieve-tasks"),
     path("task/update/<int:task_id>/", UpdateTaskView.as_view(), name="update-task"),
+    path("task/assign/", AssignTaskView.as_view(), name="assign-task"),
+    path("task/unassign/", UnassignTaskView.as_view(), name="unassign-task"),
     path("task/delete/<int:task_id>/", DeleteProjectTaskView.as_view(), name="delete-task"),
 
     # PROJECT TASK FEEDBACK ROUTES
     path("task/feedback/give/", GiveProjectTaskFeedbackView.as_view(), name="give-task-feedback"),
     path("task/feedback/get/<int:task_id>/", RetrieveProjectTaskFeedbacksView.as_view(), name="retrieve-project-task-feedbacks"),
     path("task/feedback/update/<int:feedback_id>/", UpdateProjectTaskFeedbackView.as_view(), name="update-project-task-feedback"),
+
+    # BLIND FEEDBACK ROUTES
+    path("blind/feedback/give/", GiveBlindFeedbackView.as_view(), name="give-blind-feedback"),
+    path("blind/feedback/get/<int:task_id>/", RetrieveBlindFeedbacksView.as_view(), name="retrieve-blind-feedbacks"),
 ]

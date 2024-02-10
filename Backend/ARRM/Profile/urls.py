@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import (
-    RetrieveUserAccountDetailsView,
+    RetrieveAllUsersView, RetrieveUserAccountDetailsView,
+
+    RetrieveUserNotificationsView, MarkNotificationAsReadOrUnreadView,
 
     AddDegreeView, RetrieveDegreeView, RetrieveDegreesView, UpdateDegreeView, 
     VerifyDegreeView, DeleteDegreeView, RestoreDegreeView, DeleteDegreePermanentlyView,
@@ -10,16 +12,21 @@ from .views import (
 
     AddInterestView, RetrieveInterestsView, DeleteInterestView,
 
-    UpdateResearchAssistantView, RetrieveResearchAssitantView, RemoveRAInterestView,
+    UpdateResearchAssistantView, RetrieveResearchAssistantView, RemoveRAInterestView,
     
-    AddRAToSemesterView, RemoveRAFromSemesterView, RetrieveRAAvaliabilityView,
+    AddRAToSemesterView, RemoveRAFromSemesterView, RetrieveRAAvailabilityView,
 
     UpdateFacultyView, RetrieveFacultyView, RemoveFacultyInterestView,
 )
 
 urlpatterns = [
     # USER ACCOUNT ROUTES
+    path("get/all/", RetrieveAllUsersView.as_view(), name="retrieve-all-users"),
     path("get/<int:user_id>/", RetrieveUserAccountDetailsView.as_view(), name="retrieve-user-account-details"),
+
+    # NOTIFICATION ROUTES
+    path("notification/get/", RetrieveUserNotificationsView.as_view(), name="retrieve-user-notifications"),
+    path("notification/mark/", MarkNotificationAsReadOrUnreadView.as_view(), name="mark-notification-as-read-or-unread"),
 
     # DEGREE ROUTES
     path("degree/add/", AddDegreeView.as_view(), name="add-degree"),
@@ -46,13 +53,13 @@ urlpatterns = [
 
     # RESEARCH ASSISTANT ROUTES
     path("ra/update/", UpdateResearchAssistantView.as_view(), name="update-ra"),
-    path("ra/get/", RetrieveResearchAssitantView.as_view(), name="retrieve-ra"),
+    path("ra/get/", RetrieveResearchAssistantView.as_view(), name="retrieve-ra"),
     path("ra/interest/remove/<int:interest_id>/", RemoveRAInterestView.as_view(), name="remove-ra-interest"),
 
     # RESEARCH ASSISTANT AVAILABILITY ROUTES
     path("ra/availability/add/", AddRAToSemesterView.as_view(), name="add-ra-availability"),
     path("ra/availability/remove/<int:availability_id>/", RemoveRAFromSemesterView.as_view(), name="remove-ra-availability"),
-    path("ra/availability/get/<int:user_id>/", RetrieveRAAvaliabilityView.as_view(), name="retrieve-ra-availability"),
+    path("ra/availability/get/<int:user_id>/", RetrieveRAAvailabilityView.as_view(), name="retrieve-ra-availability"),
 
     # FACULTY ROUTES
     path("faculty/update/", UpdateFacultyView.as_view(), name="update-faculty"),

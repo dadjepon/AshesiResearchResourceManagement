@@ -68,10 +68,10 @@ class RegisterUsersView(APIView):
                 user_creation_response.append(serializer.data)
                 user_creation_response[-1]["account_status"] = "success"
 
-                if email_sent == None:
-                    user_creation_response[-1]["email_sent"] = "failed"
-                else:
-                    user_creation_response[-1]["email_sent"] = "success"
+                # if email_sent == None:
+                #     user_creation_response[-1]["email_sent"] = "failed"
+                # else:
+                #     user_creation_response[-1]["email_sent"] = "success"
 
             else:
                 serializer.errors["account_status"] = "failed"
