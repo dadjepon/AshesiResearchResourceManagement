@@ -283,7 +283,7 @@ class ProjectTaskFeedback(models.Model):
     """
 
     project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="task_reviewer")
     target_member = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="target_member")
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -309,7 +309,7 @@ class BlindProjectFeedback(models.Model):
     """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="project_reviewer")
     intended_user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="intended_user")
     rating = models.FloatField()
     comment = models.TextField()

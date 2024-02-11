@@ -9,7 +9,7 @@ from .views import (
     CreateTeamMemberRoleView, RetrieveTeamMemberRolesView,DeleteTeamMemberRoleView,
     AddRoleToProjectView, RemoveRoleFromProjectView, RetrieveProjectRolesView,
 
-    RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
+    ComputeMembershipMatchScoreView, RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
     AcceptProjectMembershipView, RejectProjectMembershipView, DeleteProjectMembershipRequestView,
 
     InviteResearchAssistantView, RetrieveProjectInvitationsView, AcceptProjectInvitationView,
@@ -36,15 +36,11 @@ urlpatterns = [
     path("get/", RetrieveProjectsView.as_view(), name="retrieve-projects"),
     path("get/public/", RetrievePublicProjectsView.as_view(), name="retrieve-public-projects"),
     path("update/<int:project_id>/", UpdateProjectView.as_view(), name="update-project"),
-    path("study_area/remove/", RemoveProjectStudyAreaView.as_view(), name="remove-project-study-area"),
     path("visibility/change/<int:project_id>/", ChangeProjectVisibilityView.as_view(), name="change-project-visibility"),
+    path("study_area/remove/", RemoveProjectStudyAreaView.as_view(), name="remove-project-study-area"),
     path("delete/<int:project_id>/", DeleteProjectView.as_view(), name="delete-project"),
     path("restore/<int:project_id>/", RestoreProjectView.as_view(), name="restore-project"),
     path("delete/permanently/<int:project_id>/", DeleteProjectPermanentlyView.as_view(), name="delete-project-permanently"),
-
-    # PROJECT MATCH SCORES ROUTES
-    path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
-    path("match/get/<int:project_id>/", RetrieveProjectMatchScoresView.as_view(), name="retrieve-project-match-scores"),
 
     # PROJECT ROLE ROUTES
     path("role/create/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
@@ -56,11 +52,8 @@ urlpatterns = [
     path("role/remove/", RemoveRoleFromProjectView.as_view(), name="remove-role-from-project"),
     path("role/get/<int:project_id>/", RetrieveProjectRolesView.as_view(), name="retrieve-project-roles"),
     
-    # PROJECT TEAM
-    path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
-    path("team/remove/<int:project_member_id>/", RemoveProjectTeamMemberView.as_view(), name="remove-project-team-member"),
-
     # PROJECT MEMBERSHIP ROUTES
+    path("membership/request/compute/<int:project_role_id>/", ComputeMembershipMatchScoreView.as_view(), name="compute-membership-match-score"),
     path("membership/request/<int:project_role_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
     path("membership/request/get/<int:project_id>/", RetrieveProjectMembershipRequestsView.as_view(), name="retrieve-project-membership-requests"),
     path("membership/request/accept/<int:project_request_id>/", AcceptProjectMembershipView.as_view(), name="accept-project-membership-request"),
@@ -73,6 +66,14 @@ urlpatterns = [
     path("invitation/accept/<int:project_invite_id>/", AcceptProjectInvitationView.as_view(), name="accept-project-invitation"),
     path("invitation/decline/<int:project_invite_id>/", DeclineProjectInvitationView.as_view(), name="reject-project-invitation"),
     path("invitation/delete/<int:project_invite_id>/", DeleteProjectInvitationView.as_view(), name="delete-project-invitation"),
+
+    # PROJECT TEAM
+    path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
+    path("team/remove/<int:project_member_id>/", RemoveProjectTeamMemberView.as_view(), name="remove-project-team-member"),
+
+    # PROJECT MATCH SCORES ROUTES
+    path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
+    path("match/get/<int:project_id>/", RetrieveProjectMatchScoresView.as_view(), name="retrieve-project-match-scores"),
 
     # MILESTONE ROUTES
     path("milestone/add/", AddMilestoneView.as_view(), name="add-milestone"),

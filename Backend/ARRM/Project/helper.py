@@ -62,15 +62,23 @@ def get_cumulative_task_hours(project):
     return cumulative_task_hours
 
 
-def get_ra_available_hours():
-    ras = ResearchAssistant.objects.all()
+def get_ra_available_hours(ra=None):
     ra_hours = dict()
 
-    for ra in ras:
-        # if not ProjectTeam.objects.filter(project=project, user=ra.user).exists():
+    if ra:
         ra_total_hours = get_ra_total_hours(ra)
         ra_project_hours = get_ra_project_hours(ra)
-        ra_hours[ra.user.id] = ra_total_hours - ra_project_hours # type: ignore 
+        ra_hours[ra.id] = ra_total_hours - ra_project_hours
+
+    else:
+        ras = ResearchAssistant.objects.all()
+        ra_hours = dict()
+
+        for ra in ras:
+            # if not ProjectTeam.objects.filter(project=project, user=ra.user).exists():
+            ra_total_hours = get_ra_total_hours(ra)
+            ra_project_hours = get_ra_project_hours(ra)
+            ra_hours[ra.user.id] = ra_total_hours - ra_project_hours 
 
     return ra_hours
 

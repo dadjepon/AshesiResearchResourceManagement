@@ -381,6 +381,65 @@ class RetrieveProjectRolesView(generics.ListAPIView):
         return Response(ProjectRoleSerializer(project_roles, many=True).data, status=status.HTTP_200_OK)
     
 
+class ComputeMembershipMatchScoreView(APIView):
+    permissions_classes = [IsAuthenticated, IsBlacklistedToken]
+
+    def post(self, request, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if project.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
+        if not project.description or not project.start_date or not project.end_date:
+            return Response({"error": "Project details are not complete. Project description, start date and end date are required to complete project!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not project.estimated_project_hours:
+            return Response({"error": "Estimated project hours is required for matching!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # retrieve all project tasks and compute required project hours
+        assigned_project_hours = get_cumulative_task_hours(project)
+        
+        # retrieve Ra and compute available hours
+        try:
+            ra = ResearchAssistant.objects.get(user=request.user)
+        except ResearchAssistant.DoesNotExist:
+            return Response({"error": "Research Assistant not found!"}, status=status.HTTP_404_NOT_FOUND)
+
+        ra_available_hours = get_ra_available_hours(ra)
+
+        if ra_available_hours[ra.id] - (project.estimated_project_hours - assigned_project_hours) < 0:
+            return Response({"error": "You do not have enough available hours to work on this project!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # retrieve project study areas
+        project_study_areas = ProjectStudyArea.objects.filter(project=project)
+        project_study_areas = [project_study_area.study_area for project_study_area in project_study_areas]
+
+        # retrieve RA profile, interests, study areas, degrees, and compute matching scores
+        matching_score = 0  # (OUT OF 7)
+
+        # compute project study area matching score (OUT OF 3)
+        matching_score += compute_project_study_area_match_score(ra, project_study_areas)
+
+        # compute faculty study area matching score (OUT OF 2)
+        matching_score += compute_faculty_study_area_match_score(ra, project_study_areas)
+
+        # compute RA and Faculty degree matching score (OUT OF 1)
+        matching_score += compute_degree_match_score(ra, project)
+
+        # compute interest to project title & description matching score (OUT OF 1)
+        matching_score += compute_interest_match_score(ra, project)
+
+        project_match_score = ProjectMatchScores(
+            project=project,
+            user=ra,
+            score=matching_score
+        )
+        return Response(ProjectMatchScoresSerializer(project_match_score).data, status=status.HTTP_200_OK)
+
+
 class RequestProjectMembershipView(APIView):
     permission_classes = [IsAuthenticated, IsBlacklistedToken]
 
@@ -599,8 +658,7 @@ class AcceptProjectInvitationView(APIView):
         notification = Notification(
             user=project_team_invitation.project_role.project.user,
             title="Project Membership Invitation Accepted!",
-            message=f"{project_team_invitation.user.firstname} {project_team_invitation.user.lastname} has accepted the invitation to join the 
-            '{project_team_invitation.project_role.project.title}' project as a {project_team_invitation.project_role.name}!", 
+            message=f"{project_team_invitation.user.firstname} {project_team_invitation.user.lastname} has accepted the invitation to join the '{project_team_invitation.project_role.project.title}' project as a {project_team_invitation.project_role.name}!", 
         )
         notification.save()
         return Response({"success": f"You are now a member of the '{project_team.project_role.project.title}' project!"}, 
@@ -625,8 +683,7 @@ class DeclineProjectInvitationView(APIView):
         notification = Notification(
             user=project_team_invitation.project_role.project.user,
             title="Project Membership Invitation Declined!",
-            message=f"{project_team_invitation.user.firstname} {project_team_invitation.user.lastname} has declined the invitation to join the 
-            '{project_team_invitation.project_role.project.title}' project as a {project_team_invitation.project_role.name}!", 
+            message=f"{project_team_invitation.user.firstname} {project_team_invitation.user.lastname} has declined the invitation to join the '{project_team_invitation.project_role.project.title}' project as a {project_team_invitation.project_role.name}!", 
         )
         notification.save()
         return Response({"success": "Project invitation rejected successfully!"}, status=status.HTTP_200_OK)
