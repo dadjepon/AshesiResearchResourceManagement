@@ -1,5 +1,5 @@
 from .models import ProjectTask, ProjectTaskAssignment, ProjectTeam, Milestone
-from Profile.models import ResearchAssistant, ResearchAssistantAvailability, Degree
+from Profile.models import ResearchAssistant, ResearchAssistantAvailability, Degree, FacultyInterests
 
 
 REQUIRED_WEEKLY_HOURS = 40
@@ -68,7 +68,7 @@ def get_ra_available_hours(ra=None):
     if ra:
         ra_total_hours = get_ra_total_hours(ra)
         ra_project_hours = get_ra_project_hours(ra)
-        ra_hours[ra.id] = ra_total_hours - ra_project_hours
+        ra_hours[ra.user.id] = ra_total_hours - ra_project_hours
 
     else:
         ras = ResearchAssistant.objects.all()
@@ -102,7 +102,7 @@ def get_ra_project_hours(ra):
     total_project_hours = 0
 
     for team in project_team:
-        assigned_tasks = ProjectTaskAssignment.objects.filter(project_task__project_milestone__project=team.project, assignee=ra.user)
+        assigned_tasks = ProjectTaskAssignment.objects.filter(project_task__project_milestone__project=team.project_role.project, assignee=ra.user)
         project_hours = 0
 
         for assigned_task in assigned_tasks:
@@ -141,7 +141,7 @@ def compute_faculty_study_area_match_score(ra, faculty):
     matching_score = 0
     total_score = 0
     ra_study_areas = set(interest["study_area"] for interest in ra["interests"])
-    faculty_study_areas = set(interest.study_area for interest in faculty.interests.all())
+    faculty_study_areas = set(interest.interest.study_area for interest in FacultyInterests.objects.filter(faculty=faculty))
 
     for area in ra_study_areas:
         if area in faculty_study_areas:
