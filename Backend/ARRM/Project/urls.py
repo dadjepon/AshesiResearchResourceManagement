@@ -53,7 +53,7 @@ urlpatterns = [
     path("role/get/<int:project_id>/", RetrieveProjectRolesView.as_view(), name="retrieve-project-roles"),
     
     # PROJECT MEMBERSHIP ROUTES
-    path("membership/request/compute/<int:project_role_id>/", ComputeMembershipMatchScoreView.as_view(), name="compute-membership-match-score"),
+    path("membership/request/compute/<int:project_id>/", ComputeMembershipMatchScoreView.as_view(), name="compute-membership-match-score"),
     path("membership/request/<int:project_role_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
     path("membership/request/get/<int:project_id>/", RetrieveProjectMembershipRequestsView.as_view(), name="retrieve-project-membership-requests"),
     path("membership/request/accept/<int:project_request_id>/", AcceptProjectMembershipView.as_view(), name="accept-project-membership-request"),
@@ -101,6 +101,6 @@ urlpatterns = [
     path("task/feedback/update/<int:feedback_id>/", UpdateProjectTaskFeedbackView.as_view(), name="update-project-task-feedback"),
 
     # BLIND FEEDBACK ROUTES
-    path("blind/feedback/give/", GiveBlindFeedbackView.as_view(), name="give-blind-feedback"),
-    path("blind/feedback/get/<int:task_id>/", RetrieveBlindFeedbacksView.as_view(), name="retrieve-blind-feedbacks"),
+    path("blind/feedback/give/<int:project_id>/", GiveBlindFeedbackView.as_view(), name="give-blind-feedback"),
+    path("blind/feedback/get/<int:project_id>/", RetrieveBlindFeedbacksView.as_view(), name="retrieve-blind-feedbacks"),
 ]
