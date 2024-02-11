@@ -50,17 +50,13 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class DegreeSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = Degree
         fields = [
-            "id", "user", "type", "university", "major", "graduation_year", 
+            "id", "type", "university", "major", "graduation_year", 
             "transcript", "created_at", "is_deleted", "is_verified"
         ]
-
-    def get_user(self, obj):
-        return self.context["request"].user.email
     
     def validate_type(self, value):
         if value not in DegreeType.values:
@@ -101,6 +97,11 @@ class DegreeSerializer(serializers.ModelSerializer):
 
         degree.save()
         return degree
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
+        return representation
     
 
 class WritingSampleSerializer(serializers.ModelSerializer):
