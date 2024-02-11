@@ -81,7 +81,7 @@ class TeamMemberRole(models.Model):
         - name (CharField): the role's name
     """
     
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True)
     name = models.CharField(max_length=100)
 
     def __str__(self):
