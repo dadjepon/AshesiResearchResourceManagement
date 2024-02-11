@@ -6,7 +6,10 @@ from .views import (
 
     ProjectMatchScoresView, RetrieveProjectMatchScoresView,
 
-    RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
+    CreateTeamMemberRoleView, RetrieveTeamMemberRolesView,DeleteTeamMemberRoleView,
+    AddRoleToProjectView, RemoveRoleFromProjectView, RetrieveProjectRolesView,
+
+    ComputeMembershipMatchScoreView, RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
     AcceptProjectMembershipView, RejectProjectMembershipView, DeleteProjectMembershipRequestView,
 
     InviteResearchAssistantView, RetrieveProjectInvitationsView, AcceptProjectInvitationView,
@@ -18,9 +21,12 @@ from .views import (
 
     RetrieveProjectMilestoneView, RemoveProjectTaskFromMilestoneView, DeleteProjectMilestoneView,
 
-    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, DeleteProjectTaskView,
+    AddProjectTaskView, RetrieveTaskView, RetrieveTasksView, UpdateTaskView, AssignTaskView, 
+    UnassignTaskView, DeleteProjectTaskView,
 
     GiveProjectTaskFeedbackView, RetrieveProjectTaskFeedbacksView, UpdateProjectTaskFeedbackView,
+
+    GiveBlindFeedbackView, RetrieveBlindFeedbacksView, 
 )
 
 urlpatterns = [
@@ -30,22 +36,25 @@ urlpatterns = [
     path("get/", RetrieveProjectsView.as_view(), name="retrieve-projects"),
     path("get/public/", RetrievePublicProjectsView.as_view(), name="retrieve-public-projects"),
     path("update/<int:project_id>/", UpdateProjectView.as_view(), name="update-project"),
-    path("study_area/remove/", RemoveProjectStudyAreaView.as_view(), name="remove-project-study-area"),
     path("visibility/change/<int:project_id>/", ChangeProjectVisibilityView.as_view(), name="change-project-visibility"),
+    path("study_area/remove/", RemoveProjectStudyAreaView.as_view(), name="remove-project-study-area"),
     path("delete/<int:project_id>/", DeleteProjectView.as_view(), name="delete-project"),
     path("restore/<int:project_id>/", RestoreProjectView.as_view(), name="restore-project"),
     path("delete/permanently/<int:project_id>/", DeleteProjectPermanentlyView.as_view(), name="delete-project-permanently"),
 
-    # PROJECT MATCH SCORES ROUTES
-    path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
-    path("match/get/<int:project_id>/", RetrieveProjectMatchScoresView.as_view(), name="retrieve-project-match-scores"),
-    
-    # PROJECT TEAM
-    path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
-    path("team/remove/<int:project_member_id>/", RemoveProjectTeamMemberView.as_view(), name="remove-project-team-member"),
+    # PROJECT ROLE ROUTES
+    path("role/create/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
+    path("role/get/", RetrieveTeamMemberRolesView.as_view(), name="retrieve-team-member-roles"),
+    path("role/delete/<int:role_id>/", DeleteTeamMemberRoleView.as_view(), name="delete-team-member-role"),
 
+    # PROJECT ROLE ASSIGNMENT ROUTES
+    path("role/add/", AddRoleToProjectView.as_view(), name="add-role-to-project"),
+    path("role/remove/", RemoveRoleFromProjectView.as_view(), name="remove-role-from-project"),
+    path("role/get/<int:project_id>/", RetrieveProjectRolesView.as_view(), name="retrieve-project-roles"),
+    
     # PROJECT MEMBERSHIP ROUTES
-    path("membership/request/<int:project_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
+    path("membership/request/compute/<int:project_id>/", ComputeMembershipMatchScoreView.as_view(), name="compute-membership-match-score"),
+    path("membership/request/<int:project_role_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
     path("membership/request/get/<int:project_id>/", RetrieveProjectMembershipRequestsView.as_view(), name="retrieve-project-membership-requests"),
     path("membership/request/accept/<int:project_request_id>/", AcceptProjectMembershipView.as_view(), name="accept-project-membership-request"),
     path("membership/request/reject/<int:project_request_id>/", RejectProjectMembershipView.as_view(), name="reject-project-membership-request"),
@@ -57,6 +66,14 @@ urlpatterns = [
     path("invitation/accept/<int:project_invite_id>/", AcceptProjectInvitationView.as_view(), name="accept-project-invitation"),
     path("invitation/decline/<int:project_invite_id>/", DeclineProjectInvitationView.as_view(), name="reject-project-invitation"),
     path("invitation/delete/<int:project_invite_id>/", DeleteProjectInvitationView.as_view(), name="delete-project-invitation"),
+
+    # PROJECT TEAM
+    path("team/get/<int:project_id>/", RetrieveProjectTeamMembersView.as_view(), name="retrieve-project-team-members"),
+    path("team/remove/<int:project_member_id>/", RemoveProjectTeamMemberView.as_view(), name="remove-project-team-member"),
+
+    # PROJECT MATCH SCORES ROUTES
+    path("match/request/<int:project_id>/", ProjectMatchScoresView.as_view(), name="project-match-scores"),
+    path("match/get/<int:project_id>/", RetrieveProjectMatchScoresView.as_view(), name="retrieve-project-match-scores"),
 
     # MILESTONE ROUTES
     path("milestone/add/", AddMilestoneView.as_view(), name="add-milestone"),
@@ -74,10 +91,16 @@ urlpatterns = [
     path("task/get/<int:task_id>/", RetrieveTaskView.as_view(), name="retrieve-task"),
     path("task/get/", RetrieveTasksView.as_view(), name="retrieve-tasks"),
     path("task/update/<int:task_id>/", UpdateTaskView.as_view(), name="update-task"),
+    path("task/assign/", AssignTaskView.as_view(), name="assign-task"),
+    path("task/unassign/", UnassignTaskView.as_view(), name="unassign-task"),
     path("task/delete/<int:task_id>/", DeleteProjectTaskView.as_view(), name="delete-task"),
 
     # PROJECT TASK FEEDBACK ROUTES
     path("task/feedback/give/", GiveProjectTaskFeedbackView.as_view(), name="give-task-feedback"),
     path("task/feedback/get/<int:task_id>/", RetrieveProjectTaskFeedbacksView.as_view(), name="retrieve-project-task-feedbacks"),
     path("task/feedback/update/<int:feedback_id>/", UpdateProjectTaskFeedbackView.as_view(), name="update-project-task-feedback"),
+
+    # BLIND FEEDBACK ROUTES
+    path("blind/feedback/give/<int:project_id>/", GiveBlindFeedbackView.as_view(), name="give-blind-feedback"),
+    path("blind/feedback/get/<int:project_id>/", RetrieveBlindFeedbacksView.as_view(), name="retrieve-blind-feedbacks"),
 ]

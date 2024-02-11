@@ -10,7 +10,7 @@ from Profile.models import StudyArea
 class ProjectStatus(models.TextChoices):
     """
     defines choices for project status
-    types: (pending, in-progress, completed, anulled)
+    types: (pending, in-progress, completed, annulled)
     """
 
     PENDING = "pending", _("Pending")
@@ -19,7 +19,7 @@ class ProjectStatus(models.TextChoices):
     IN_REVIEW = "in_review", _("In Review")
     DONE = "done", _("Done")
     COMPLETED = "completed", _("Completed")
-    ANULLED = "anulled", _("Anulled")
+    ANNULLED = "annulled", _("Annulled")
 
 
 class Project(models.Model):
@@ -72,18 +72,36 @@ class ProjectStudyArea(models.Model):
         return f"{self.project.title} -> {self.study_area}"
     
 
+class TeamMemberRole(models.Model):
+    """
+    defines attributes for a TeamMemberRole class
+
+    Attributes:
+        - user (UserAccount): the user account of the project owner
+        - name (CharField): the role's name
+    """
+    
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class ProjectRole(models.Model):
     """
     defines attributes for a ProjectRole class
 
     Attributes:
-        - name (CharField): the role's name
+        - project (Project): the project
+        - team_member_role (TeamMemberRole): the role applicable to the project
     """
-    
-    name = models.CharField(max_length=100, unique=True)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    team_member_role = models.ForeignKey(TeamMemberRole, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.project.title} -> {self.role.name}"
 
 
 class ProjectTeam(models.Model):
@@ -91,16 +109,15 @@ class ProjectTeam(models.Model):
     defines attributes for a ProjectTeam class
 
     Attributes:
-        - project (Project): the project
         - user (UserAccount): the user account of the team member
-        - role (CharField): the team member's role (faculty, ra, etc.)
+        - project_role (ProjectRole): the project role for the team member
     """
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project.title} -> {self.user.email}"
+        return f"{self.project_role.project.title} -> {self.user.email}"
 
 
 class ProjectTeamRequest(models.Model):
@@ -108,15 +125,15 @@ class ProjectTeamRequest(models.Model):
     defines attributes for a ProjectTeamRequest class
 
     Attributes:
-        - project (Project): the project
+        - project_role (ProjectRole): the project role for the team member
         - user (UserAccount): the requesting user's account
     """
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project.title} -> {self.user.email}"
+        return f"{self.project_role.project.title} -> {self.user.email}"
     
 
 class ProjectTeamInvitation(models.Model):
@@ -124,15 +141,15 @@ class ProjectTeamInvitation(models.Model):
     defines attributes for a ProjectTeamInvitation class
 
     Attributes:
-        - project (Project): the project
+        - project_role (ProjectRole): the project role for the team member
         - user (UserAccount): the invited user's account
     """
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project.title} -> {self.user.email}"
+        return f"{self.project_role.project.title} -> {self.user.email}"
 
 
 class ProjectMatchScores(models.Model):
@@ -142,17 +159,18 @@ class ProjectMatchScores(models.Model):
     Attributes:
         - project (Project): the project
         - user (UserAccount): the user's account
-        - score (IntegerField): the user's score
+        - score (FloatField): the user's score
         - created_at (DateTimeField): the match's creation date
     """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
-    score = models.IntegerField()
+    score = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.project.title} -> {self.user.email} ({self.score}%)"
+    
     
     @classmethod
     def clean_matches(cls, project):
@@ -217,7 +235,6 @@ class ProjectTask(models.Model):
 
     Attributes:
         - project_milestone (ProjectMilestone): the project milestone
-        - assignee (UserAccount): the RA or Faculty assigned to the task
         - name (CharField): the task's name
         - description (TextField): the task's description
         - status (CharField): the task's status
@@ -226,7 +243,6 @@ class ProjectTask(models.Model):
     """
     
     project_milestone = models.ForeignKey(ProjectMilestone, on_delete=models.CASCADE)
-    assignee = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=ProjectStatus.choices, default=ProjectStatus.TODO)
@@ -235,6 +251,23 @@ class ProjectTask(models.Model):
     
     def __str__(self):
         return f"{self.project_milestone.project.title} : {self.project_milestone.milestone.name} - {self.name}"
+    
+
+class ProjectTaskAssignment(models.Model):
+    """
+    defines attributes for a ProjectTaskAssignment class to ensure
+    more than one user can be assigned to a task
+
+    Attributes:
+        - project_task (ProjectTask): the project task
+        - assignee (UserAccount): the RA or Faculty assigned to the task
+    """
+
+    project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
+    assignee = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.project_task.name} -> {self.assignee.email}"
 
 
 class ProjectTaskFeedback(models.Model):
@@ -250,10 +283,37 @@ class ProjectTaskFeedback(models.Model):
     """
 
     project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="task_reviewer")
     target_member = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="target_member")
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    edited = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.project_task.name} : {self.target_member.email} - {self.project_task.name}"
+
+
+class BlindProjectFeedback(models.Model):
+    """
+    defines attributes for a blind feedback system for a project
+    (blind because info about the reviewer isn't returned during query
+    but it is stored for permissions handling)
+
+    Attributes:
+        - project (Project): the project
+        - reviewer (UserAccount): the reviewer
+        - intended_user (UserAccount): the user being reviewed
+        - rating (FloatField): the rate (out of 5) for the intended_user
+        - comment (TextField): the reviewer's comment on the rating
+        - time_stamp (DateTimeField): the date the comment was posted
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="project_reviewer")
+    intended_user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="intended_user")
+    rating = models.FloatField()
+    comment = models.TextField()
+    time_stamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.intended_user.firstname} {self.intended_user.lastname} ({self.rating}): {self.comment} at {self.time_stamp}"

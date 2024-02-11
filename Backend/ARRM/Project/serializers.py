@@ -1,13 +1,12 @@
-from asyncio import tasks
 import re
 from rest_framework import serializers
 from datetime import datetime, timedelta
 
 from .models import (
-    ProjectStatus, Project, ProjectStudyArea, ProjectTeam, ProjectTeamRequest,
-    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskFeedback,
+    ProjectStatus, Project, ProjectStudyArea, TeamMemberRole, ProjectRole, ProjectTeam, ProjectTeamRequest,
+    ProjectTeamInvitation, ProjectMatchScores, Milestone, ProjectMilestone, ProjectTask, ProjectTaskAssignment,
+    ProjectTaskFeedback, BlindProjectFeedback,
 )
-from Profile.models import StudyArea
 from Account.models import Role, UserAccount
 
 
@@ -101,7 +100,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
         # retrieve team members
         representation["team_members"] = []
-        for project_team in ProjectTeam.objects.filter(project=instance):
+        for project_team in ProjectTeam.objects.filter(project_role__project=instance):
             team_member = ProjectTeamSerializer(project_team, context={"request": self.context["request"]})
             representation["team_members"].append(team_member.to_representation(project_team))
 
@@ -111,20 +110,101 @@ class ProjectSerializer(serializers.ModelSerializer):
             milestone = ProjectMilestoneSerializer(project_milestone, context={"request": self.context["request"]})
             representation["milestones"].append(milestone.to_representation(project_milestone))
 
-        # if the user is the admin, retrieve project requests and invites
+        # if the user is the project admin
         if self.context["request"].user == instance.user:
             # retrieve project requests
             representation["project_requests"] = []
-            for project_request in ProjectTeamRequest.objects.filter(project=instance):
+            for project_request in ProjectTeamRequest.objects.filter(project_role__project=instance):
                 request = ProjectTeamRequestSerializer(project_request, context={"request": self.context["request"]})
                 representation["project_requests"].append(request.to_representation(project_request))
 
             # retrieve project invitations
             representation["project_invitations"] = []
-            for project_invitation in ProjectTeamInvitation.objects.filter(project=instance):
+            for project_invitation in ProjectTeamInvitation.objects.filter(project_role__project=instance):
                 invitation = ProjectTeamInvitationSerializer(project_invitation, context={"request": self.context["request"]})
                 representation["project_invitations"].append(invitation.to_representation(project_invitation))
 
+            # retrieve project match scores
+            representation["project_match_scores"] = []
+            for project_match_score in ProjectMatchScores.objects.filter(project=instance):
+                match_score = ProjectMatchScoresSerializer(project_match_score, context={"request": self.context["request"]})
+                representation["project_match_scores"].append(match_score.to_representation(project_match_score))
+            
+        else:
+            # check if the user has already requested to join the project
+            if ProjectTeamRequest.objects.filter(project_role__project=instance, user=self.context["request"].user).exists():
+                representation["has_requested"] = True
+                representation["request_id"] = ProjectTeamRequest.objects.get(project_role__project=instance, user=self.context["request"].user).id
+            else:
+                representation["has_requested"] = False
+
+            # check if the user has already been invited to join the project
+            if ProjectTeamInvitation.objects.filter(project_role__project=instance, user=self.context["request"].user).exists():
+                representation["has_been_invited"] = True
+                representation["invitation_id"] = ProjectTeamInvitation.objects.get(project_role__project=instance, user=self.context["request"].user).id
+            else:
+                representation["has_been_invited"] = False
+
+        return representation
+    
+
+class TeamMemberRoleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TeamMemberRole
+        fields = ["id", "name", "user"]
+
+    def validate_name(self, value):
+        if len(value) > 100:
+            raise serializers.ValidationError("Name must not exceed 100 characters!")
+        
+        if not re.match(r"^[a-zA-Z0-9 ]+$", value):
+            raise serializers.ValidationError("Name must only contain alphanumeric characters!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if TeamMemberRole.objects.filter(name=attrs["name"], user=self.context["request"].user).exists():
+            raise serializers.ValidationError("You have already created a role with this name!")
+        attrs["user"] = self.context["request"].user
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
+        representation["user_id"] = instance.user.id
+        return representation
+    
+
+class ProjectRoleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProjectRole
+        fields = ["id", "project", "team_member_role"]
+
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project!")
+        
+        return value
+    
+    def validate_team_member_role(self, value):
+        if not TeamMemberRole.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid team member role!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if ProjectRole.objects.filter(project=attrs["project"], team_member_role=attrs["team_member_role"]).exists():
+            raise serializers.ValidationError("You have already created a role with this name!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project"] = instance.project.title
+        representation["project_id"] = instance.project.id
+        representation["team_member_role"] = instance.id
         return representation
     
 
@@ -134,43 +214,44 @@ class ProjectTeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTeam
-        fields = ["id", "user", "user_id"]
+        fields = ["id", "user", "user_id", "project_role"]
     
     def get_user(self, obj):
         return obj.user.firstname + " " + obj.user.lastname
     
     def get_user_id(self, obj):
         return obj.user.id
+    
+    def validate_project_role(self, value):
+        if not ProjectRole.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project role!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if ProjectTeam.objects.filter(user=attrs["user"]).exists():
+            raise serializers.ValidationError("You have already added this team member!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["project_role"] = instance.id
+        return representation
 
 
 class ProjectTeamRequestSerializer(serializers.ModelSerializer):
-    project = serializers.SerializerMethodField("get_project")
-    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = ProjectTeamRequest
-        fields = ["id", "project", "user"]
-
-    def get_project(self, obj):
-        return obj.project.title
-    
-    def get_user(self, obj):
-        return obj.user.email
+        fields = ["id", "project_role", "user"]
 
 
 class ProjectTeamInvitationSerializer(serializers.ModelSerializer):
-    project = serializers.SerializerMethodField("get_project")
-    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = ProjectTeamInvitation
-        fields = ["id", "project", "user"]
- 
-    def get_project(self, obj):
-        return obj.project.title
-    
-    def get_user(self, obj):
-        return obj.user.email
+        fields = ["id", "project_role", "user"]
     
 
 class ProjectMatchScoresSerializer(serializers.ModelSerializer):
@@ -206,7 +287,8 @@ class ProjectMatchScoresSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["project"] = instance.project.title
-        representation["user"] = instance.user.email
+        representation["user_email"] = instance.user.email
+        representation["user_id"] = instance.user.id
         return representation
 
 
@@ -279,17 +361,8 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTask
-        fields = ["id", "project_milestone", "assignee", "name", 
+        fields = ["id", "project_milestone", "name", 
                   "description", "status", "hours_required", "due_date"]
-    
-    def validate_assignee(self, value):
-        if not UserAccount.objects.filter(id=value.id).exists():
-            raise serializers.ValidationError(f"{value.email} is not a valid account!")
-        
-        if value.role == Role.ADMIN:
-            raise serializers.ValidationError(f"{value.email} is an admin and cannot be assigned to a task!")
-        
-        return value
     
     def validate_name(self, value):
         if len(value) > 100:
@@ -338,7 +411,11 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["project"] = instance.project_milestone.project.title
         representation["project_milestone"] = instance.project_milestone.milestone.name
-        representation["assignee"] = instance.assignee.email if instance.assignee else None
+
+        # retrieve task assignees
+        representation["assignees"] = []
+        for assignee in ProjectTaskAssignment.objects.filter(project_task=instance.id):
+            representation["assignees"].append({"email": assignee.assignee.email, "user_id": assignee.assignee.id})
 
         # retrieve feedbacks
         feedbacks = []
@@ -354,7 +431,7 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectTaskFeedback
-        fields = ["id", "project_task", "target_member", "feedback", "created_at"]
+        fields = ["id", "project_task", "target_member", "feedback", "created_at", "edited"]
 
     def validate_project_task(self, value):
         if not ProjectTask.objects.filter(id=value.id).exists():
@@ -363,6 +440,8 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
         return value
     
     def validate_target_member(self, value):
+        if not ProjectTeam.objects.filter(user=value).exists():
+            raise serializers.ValidationError(f"{value.email} is not a member of ")
         if not UserAccount.objects.filter(id=value.id).exists():
             raise serializers.ValidationError(f"{value.email} is an admin and cannot be the target of a task feedback!")
         
@@ -370,8 +449,8 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
     
     def validate(self, attrs):        
         # ensure that the targeted Project Member is assigned to the Project Task
-        if attrs["project_task"].assignee != attrs["target_member"] and attrs["project_task"].project_milestone.project.user != attrs["target_member"]:
-            # ProjectTeam.objects.create(project=attrs["project_task"].project_milestone.project, user=attrs["target_member"])
+        if (not ProjectTaskAssignment.objects.filter(project_task=attrs["project_task"], assignee=attrs["target_member"]).exists() and
+             attrs["project_task"].project_milestone.project.user != attrs["target_member"]):
             raise serializers.ValidationError("Target Project member is not assigned to this project task!")
         
         # ensure that the reviewer is not the target member
@@ -384,6 +463,49 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["reviewer"] = instance.reviewer.email
-        representation["target_member"] = instance.target_member.email
+        representation["reviewer_id"] = instance.reviewer.id
+        representation["target_member_id"] = instance.target_member.id
+        return representation
+
+
+class BlindProjectFeedbackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BlindProjectFeedback
+        fields = ["id", "project", "reviewer", "intended_user", "rating",
+                  "comment", "time_stamp"]
+        
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid project!")
+        
+        return value
+    
+    def validate_rating(self, value):
+        if value < 0 or value > 5:
+            raise serializers.ValidationError("Invalid rating!")
+        
+        return value
+    
+    def validate(self, attrs):
+        if attrs["reviewer"] == attrs["intended_user"]:
+            raise serializers.ValidationError("Reviewer cannot be the intended user!")
+        
+        return attrs
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation.pop("reviewer")  # remove reviewer from representation
+        representation["intended_user"] = instance.intended_user.firstname + " " + instance.intended_user.lastname
+        representation["intended_user_id"] = instance.intended_user.id
+        representation["time_stamp"] = instance.time_stamp.strftime("%Y-%m-%d %H:%M:%S")    # order by time stamp
+        
+        # retrieve average rating
+        average_score = 0
+        feedbacks = BlindProjectFeedback.objects.filter(project=instance.project)
+        for feedback in feedbacks:
+            average_score += feedback.rating
+        average_score /= len(feedbacks)
+        representation["average_rating"] = average_score
+
         return representation

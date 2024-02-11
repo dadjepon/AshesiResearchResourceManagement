@@ -1,16 +1,10 @@
-from .models import ProjectTask, ProjectTeam, Milestone
-from Profile.models import ResearchAssistant, ResearchAssistantAvailability, Degree
+from .models import ProjectTask, ProjectTaskAssignment, ProjectTeam, Milestone
+from Profile.models import ResearchAssistant, ResearchAssistantAvailability, Degree, FacultyInterests
 
 
 REQUIRED_WEEKLY_HOURS = 40
-TOTAL_MATCH_SCORE = 5
+TOTAL_MATCH_SCORE = 7
 
-# MILESTONE_DICT = {
-#     "project_planning": "Project Planning",
-#     "literature_review": "Literature Review",
-#     "data_collection_and_processing": "Data Collection and Processing",
-#     "dissemination": "Dissemination"
-# }
 
 PROJECT_MILESTONE_TEMPLATE_DICT = {
     "project_planning": [
@@ -45,6 +39,7 @@ PROJECT_MILESTONE_TEMPLATE_DICT = {
     ]
 }
 
+
 def get_milestone_dict():
     milestones = Milestone.objects.all()
     MILESTONE_DICT = dict()
@@ -55,27 +50,38 @@ def get_milestone_dict():
 
     return MILESTONE_DICT
 
-def get_cummulative_task_hours(project):
-    cummulative_task_hours = 0
+
+def get_cumulative_task_hours(project):
+    cumulative_task_hours = 0
     project_tasks = ProjectTask.objects.filter(project_milestone__project=project)
 
     for project_task in project_tasks:
         if project_task.hours_required:
-            cummulative_task_hours += project_task.hours_required
+            cumulative_task_hours += project_task.hours_required
 
-    return cummulative_task_hours
+    return cumulative_task_hours
 
-def get_ra_available_hours(project):
-    ras = ResearchAssistant.objects.all()
+
+def get_ra_available_hours(ra=None):
     ra_hours = dict()
 
-    for ra in ras:
-        # if not ProjectTeam.objects.filter(project=project, user=ra.user).exists():
+    if ra:
         ra_total_hours = get_ra_total_hours(ra)
         ra_project_hours = get_ra_project_hours(ra)
-        ra_hours[ra.user.id] = ra_total_hours - ra_project_hours # type: ignore 
+        ra_hours[ra.user.id] = ra_total_hours - ra_project_hours
+
+    else:
+        ras = ResearchAssistant.objects.all()
+        ra_hours = dict()
+
+        for ra in ras:
+            # if not ProjectTeam.objects.filter(project=project, user=ra.user).exists():
+            ra_total_hours = get_ra_total_hours(ra)
+            ra_project_hours = get_ra_project_hours(ra)
+            ra_hours[ra.user.id] = ra_total_hours - ra_project_hours 
 
     return ra_hours
+
     
 def get_ra_total_hours(ra):
     ra_availability = ResearchAssistantAvailability.objects.filter(ra=ra)
@@ -84,27 +90,29 @@ def get_ra_total_hours(ra):
         semester = availability.semester
         semester_weeks = (semester.end_date - semester.start_date).days
         
-        # offset semester weeks by 2 to account for midsem and exam weeks
+        # offset semester weeks by 2 to account for mid-semester and exam weeks
         semester_weeks -= 2
         ra_total_hours += semester_weeks * REQUIRED_WEEKLY_HOURS
 
     return ra_total_hours
+
 
 def get_ra_project_hours(ra):
     project_team = ProjectTeam.objects.filter(user=ra.user)
     total_project_hours = 0
 
     for team in project_team:
-        project_tasks = ProjectTask.objects.filter(project_milestone__project=team.project, assignee=ra.user)
+        assigned_tasks = ProjectTaskAssignment.objects.filter(project_task__project_milestone__project=team.project_role.project, assignee=ra.user)
         project_hours = 0
 
-        for project_task in project_tasks:
-            if project_task.hours_required:
-                project_hours += project_task.hours_required
+        for assigned_task in assigned_tasks:
+            if assigned_task.project_task.hours_required:
+                project_hours += assigned_task.project_task.hours_required
         
         total_project_hours += project_hours
 
     return total_project_hours
+
 
 def get_available_ras(ra_available_hours, project, assigned_project_hours):
     available_ras = list()
@@ -115,7 +123,8 @@ def get_available_ras(ra_available_hours, project, assigned_project_hours):
 
     return available_ras
 
-def compute_study_area_match_score(ra, project_study_areas):
+
+def compute_project_study_area_match_score(ra, project_study_areas):
     matching_score = 0
     total_score = 0
     study_areas = set(interest["study_area"] for interest in ra["interests"])
@@ -126,6 +135,21 @@ def compute_study_area_match_score(ra, project_study_areas):
         total_score += 1
 
     return (matching_score / total_score) * 3
+
+
+def compute_faculty_study_area_match_score(ra, faculty):
+    matching_score = 0
+    total_score = 0
+    ra_study_areas = set(interest["study_area"] for interest in ra["interests"])
+    faculty_study_areas = set(interest.interest.study_area for interest in FacultyInterests.objects.filter(faculty=faculty))
+
+    for area in ra_study_areas:
+        if area in faculty_study_areas:
+            matching_score += 1
+        total_score += 1
+
+    return (matching_score / total_score) * 2
+
 
 def compute_interest_match_score(ra, project):
     matching_score = 0
@@ -148,6 +172,7 @@ def compute_interest_match_score(ra, project):
         total_score += 2
 
     return (matching_score / total_score) * 1
+
 
 def compute_degree_match_score(ra, project):
     matching_score = 0

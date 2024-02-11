@@ -3,9 +3,9 @@ from rest_framework import serializers
 from datetime import datetime
 
 from .models import (
-    Degree, DegreeType, WritingSample, StudyArea, Interest, Department, 
+    Notification, Degree, DegreeType, WritingSample, StudyArea, Interest, Department, 
     ResearchAssistant, ResearchAssistantAvailability, RAInterests, Faculty, FacultyInterests)
-from .helper import LINKIN_PROFILE_REGEX
+from .helper import LINKEDIN_PROFILE_REGEX
 from Account.models import UserAccount, Role
 from Miscelleneous.models import Semester
 from Miscelleneous.serializers import SemesterSerializer
@@ -40,20 +40,23 @@ class AccountDetailSerializer(serializers.ModelSerializer):
 
         representation.update(extended_rep)
         return representation
+    
+
+class NotificationSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Notification
+        fields = ["id", "user", "title", "message", "created_at", "is_read"]
 
 
 class DegreeSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField("get_user")
 
     class Meta:
         model = Degree
         fields = [
-            "id", "user", "type", "university", "major", "graduation_year", 
+            "id", "type", "university", "major", "graduation_year", 
             "transcript", "created_at", "is_deleted", "is_verified"
         ]
-
-    def get_user(self, obj):
-        return self.context["request"].user.email
     
     def validate_type(self, value):
         if value not in DegreeType.values:
@@ -94,6 +97,11 @@ class DegreeSerializer(serializers.ModelSerializer):
 
         degree.save()
         return degree
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["user"] = instance.user.email
+        return representation
     
 
 class WritingSampleSerializer(serializers.ModelSerializer):
@@ -168,7 +176,7 @@ class ResearchAssistantSerializer(serializers.ModelSerializer):
         return self.context["request"].user.email
     
     def validate_linkedin_url(self, value):
-        if not re.match(LINKIN_PROFILE_REGEX, value):
+        if not re.match(LINKEDIN_PROFILE_REGEX, value):
             raise serializers.ValidationError("Invalid linkedin url!")
         
         return value

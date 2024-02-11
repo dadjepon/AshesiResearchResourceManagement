@@ -6,4 +6,4 @@ id,Firstname,Lastname,Email,Mobile_number,Role,Nationality
 
 Functionalities:
 1. Endpoint for administrator accounts to pre-make accounts for Research Assistants and
-Faculty alike.          [Not Done]
+Faculty alike.          [Done]
