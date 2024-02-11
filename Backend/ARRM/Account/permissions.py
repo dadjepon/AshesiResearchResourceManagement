@@ -8,7 +8,7 @@ class IsBlacklistedToken(BasePermission):
     def has_permission(self, request, view):
 
         access_token = request.META.get("HTTP_AUTHORIZATION").split(' ')[1]
-        
-        if TokenBlacklist.objects.filter(user=request.user, token=access_token).exists():
-                raise AuthenticationFailed("User not authenticated")    
+
+        if TokenBlacklist.objects.filter(token=access_token).exists():
+            raise AuthenticationFailed("User not authenticated")    
         return True

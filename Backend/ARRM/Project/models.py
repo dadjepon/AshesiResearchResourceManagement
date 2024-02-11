@@ -81,7 +81,7 @@ class TeamMemberRole(models.Model):
         - name (CharField): the role's name
     """
     
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True)
     name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -235,7 +235,6 @@ class ProjectTask(models.Model):
 
     Attributes:
         - project_milestone (ProjectMilestone): the project milestone
-        - assignee (UserAccount): the RA or Faculty assigned to the task    (should be one-to-many, remove and create new model)
         - name (CharField): the task's name
         - description (TextField): the task's description
         - status (CharField): the task's status
@@ -284,7 +283,7 @@ class ProjectTaskFeedback(models.Model):
     """
 
     project_task = models.ForeignKey(ProjectTask, on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="task_reviewer")
     target_member = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="target_member")
     feedback = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -310,7 +309,7 @@ class BlindProjectFeedback(models.Model):
     """
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="reviewer")
+    reviewer = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="project_reviewer")
     intended_user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="intended_user")
     rating = models.FloatField()
     comment = models.TextField()

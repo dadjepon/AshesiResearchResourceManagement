@@ -19,7 +19,7 @@ class RegisterUsersView(APIView):
 
     def post(self, request):
         """
-        allows admin to premake account for users by providing
+        allows admin to pre-make account for users by providing
         a csv file containing user details
         
         FILE COLUMNS:
@@ -41,41 +41,45 @@ class RegisterUsersView(APIView):
         # create user accounts
         for user in users_data:
             user_account_details = build_account_dict(user)
-            serializer = AccountRegistrationSerializer(data=user_account_details) # type: ignore
-            if serializer.is_valid():
-                serializer.save()
-
-                # send email to user with login details
-                subject = "ARRM Account Details"
-                message = f"Hello {user_account_details['firstname'].capitalize()},\n\nYour ARRM account has been created.\n"
-                message += f"\nLogin details:\nEmail: {user_account_details['email']}\nPassword: {user_account_details['password']}\n"
-                message += f"\nPlease change your password after logging in."
-                message += f"\nRegards,\nARRM Team."
-                message = message = (
-                    f"<p>Hello {user_account_details['firstname'].capitalize()},</p>"
-                    "<p>An account has been registered for you on ARRM.</p>"
-                    "<p><strong>Login details:</strong></p>"
-                    f"<p>Email: <strong>{user_account_details['email']}</strong></p>"
-                    f"<p>Password: <strong>{user_account_details['password']}</strong></p>"
-                    f"<p>Please change your password after logging in.</p>"
-                    f"<p>Regards,<br>ARRM Team.</p>"
-                )
-                sender = "projectile.webgeeks@gmail.com"
-                recipient_list = [user_account_details["email"]]
-
-                email_sent = disseminate_email(subject, message, sender, recipient_list)
-                
-                user_creation_response.append(serializer.data)
-                user_creation_response[-1]["account_status"] = "success"
-
-                # if email_sent == None:
-                #     user_creation_response[-1]["email_sent"] = "failed"
-                # else:
-                #     user_creation_response[-1]["email_sent"] = "success"
-
+            if UserAccount.objects.filter(email=user_account_details["email"]).exists():
+                user_creation_response.append({user_account_details["email"]: "failed, user already exists!"})
+                continue
             else:
-                serializer.errors["account_status"] = "failed"
-                user_creation_response.append(serializer.errors)
+                serializer = AccountRegistrationSerializer(data=user_account_details)
+                if serializer.is_valid():
+                    serializer.save()
+
+                    # send email to user with login details
+                    subject = "ARRM Account Details"
+                    message = f"Hello {user_account_details['firstname'].capitalize()},\n\nYour ARRM account has been created.\n"
+                    message += f"\nLogin details:\nEmail: {user_account_details['email']}\nPassword: {user_account_details['password']}\n"
+                    message += f"\nPlease change your password after logging in."
+                    message += f"\nRegards,\nARRM Team."
+                    message = message = (
+                        f"<p>Hello {user_account_details['firstname'].capitalize()},</p>"
+                        "<p>An account has been registered for you on ARRM.</p>"
+                        "<p><strong>Login details:</strong></p>"
+                        f"<p>Email: <strong>{user_account_details['email']}</strong></p>"
+                        f"<p>Password: <strong>{user_account_details['password']}</strong></p>"
+                        f"<p>Please change your password after logging in.</p>"
+                        f"<p>Regards,<br>ARRM Team.</p>"
+                    )
+                    sender = "projectile.webgeeks@gmail.com"
+                    recipient_list = [user_account_details["email"]]
+
+                    email_sent = disseminate_email(subject, message, sender, recipient_list)
+                    
+                    user_creation_response.append(serializer.data)
+                    user_creation_response[-1]["account_status"] = "success"
+
+                    # if email_sent == None:
+                    #     user_creation_response[-1]["email_sent"] = "failed"
+                    # else:
+                    #     user_creation_response[-1]["email_sent"] = "success"
+
+                else:
+                    serializer.errors["account_status"] = "failed"
+                    user_creation_response.append(serializer.errors)
 
         return Response(user_creation_response, status=status.HTTP_200_OK)
     
