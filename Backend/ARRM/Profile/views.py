@@ -17,14 +17,14 @@ from Account.permissions import IsBlacklistedToken
 
 
 class RetrieveAllUsersView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated, IsBlacklistedToken, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsBlacklistedToken]
     serializer_class = AccountDetailSerializer
     queryset = UserAccount.objects.all()
     filterset_fields = ["firstname", "lastname", "email", "role", "is_active"]
 
     def get_queryset(self):
-        users = UserAccount.objects.filter(is_deleted=False)
-        return Response(AccountDetailSerializer(users, many=True).data, status=status.HTTP_200_OK)
+        # retrieve only RA and Faculty users
+        return UserAccount.objects.filter(role__in=[Role.RA, Role.FACULTY], is_active=True)
 
 
 class RetrieveUserAccountDetailsView(APIView):
