@@ -286,9 +286,8 @@ class ProjectMatchScoresSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["project"] = instance.project.title
+        representation["project"] = instance.project.id
         representation["user_email"] = instance.user.email
-        representation["user_id"] = instance.user.id
         return representation
 
 
@@ -464,7 +463,6 @@ class ProjectTaskFeedbackSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation["reviewer_id"] = instance.reviewer.id
-        representation["target_member_id"] = instance.target_member.id
         return representation
 
 

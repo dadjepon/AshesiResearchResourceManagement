@@ -42,8 +42,8 @@ urlpatterns = [
     path("restore/<int:project_id>/", RestoreProjectView.as_view(), name="restore-project"),
     path("delete/permanently/<int:project_id>/", DeleteProjectPermanentlyView.as_view(), name="delete-project-permanently"),
 
-    # PROJECT ROLE ROUTES
-    path("role/create/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
+    # TEAM MEMBER ROLE ROUTES
+    path("role/create/<int:project_id>/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
     path("role/get/", RetrieveTeamMemberRolesView.as_view(), name="retrieve-team-member-roles"),
     path("role/delete/<int:role_id>/", DeleteTeamMemberRoleView.as_view(), name="delete-team-member-role"),
 
