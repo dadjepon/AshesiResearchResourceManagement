@@ -70,38 +70,6 @@ class ProjectStudyArea(models.Model):
 
     def __str__(self):
         return f"{self.project.title} -> {self.study_area}"
-    
-
-class TeamMemberRole(models.Model):
-    """
-    defines attributes for a TeamMemberRole class
-
-    Attributes:
-        - user (UserAccount): the user account of the project owner
-        - name (CharField): the role's name
-    """
-    
-    user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, blank=True)
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-
-class ProjectRole(models.Model):
-    """
-    defines attributes for a ProjectRole class
-
-    Attributes:
-        - project (Project): the project
-        - team_member_role (TeamMemberRole): the role applicable to the project
-    """
-
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    team_member_role = models.ForeignKey(TeamMemberRole, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.project.title} -> {self.role.name}"
 
 
 class ProjectTeam(models.Model):
@@ -110,14 +78,14 @@ class ProjectTeam(models.Model):
 
     Attributes:
         - user (UserAccount): the user account of the team member
-        - project_role (ProjectRole): the project role for the team member
+        - project (Project): the project the team member is assigned to
     """
 
-    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project_role.project.title} -> {self.user.email}"
+        return f"{self.project.title} -> {self.user.email}"
 
 
 class ProjectTeamRequest(models.Model):
@@ -125,15 +93,15 @@ class ProjectTeamRequest(models.Model):
     defines attributes for a ProjectTeamRequest class
 
     Attributes:
-        - project_role (ProjectRole): the project role for the team member
+        - project (Project): the project the team member is requesting to join
         - user (UserAccount): the requesting user's account
     """
 
-    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project_role.project.title} -> {self.user.email}"
+        return f"{self.project.title} -> {self.user.email}"
     
 
 class ProjectTeamInvitation(models.Model):
@@ -141,15 +109,15 @@ class ProjectTeamInvitation(models.Model):
     defines attributes for a ProjectTeamInvitation class
 
     Attributes:
-        - project_role (ProjectRole): the project role for the team member
+        - project (Project): the project the team member is invited to
         - user (UserAccount): the invited user's account
     """
 
-    project_role = models.ForeignKey(ProjectRole, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.project_role.project.title} -> {self.user.email}"
+        return f"{self.project.title} -> {self.user.email}"
 
 
 class ProjectMatchScores(models.Model):

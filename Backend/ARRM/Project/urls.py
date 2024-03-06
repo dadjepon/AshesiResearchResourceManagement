@@ -6,9 +6,6 @@ from .views import (
 
     ProjectMatchScoresView, RetrieveProjectMatchScoresView,
 
-    CreateTeamMemberRoleView, RetrieveTeamMemberRolesView,DeleteTeamMemberRoleView,
-    AddRoleToProjectView, RemoveRoleFromProjectView, RetrieveProjectRolesView,
-
     ComputeMembershipMatchScoreView, RequestProjectMembershipView, RetrieveProjectMembershipRequestsView, 
     AcceptProjectMembershipView, RejectProjectMembershipView, DeleteProjectMembershipRequestView,
 
@@ -41,20 +38,10 @@ urlpatterns = [
     path("delete/<int:project_id>/", DeleteProjectView.as_view(), name="delete-project"),
     path("restore/<int:project_id>/", RestoreProjectView.as_view(), name="restore-project"),
     path("delete/permanently/<int:project_id>/", DeleteProjectPermanentlyView.as_view(), name="delete-project-permanently"),
-
-    # TEAM MEMBER ROLE ROUTES
-    path("role/create/<int:project_id>/", CreateTeamMemberRoleView.as_view(), name="create-team-member-role"),
-    path("role/get/", RetrieveTeamMemberRolesView.as_view(), name="retrieve-team-member-roles"),
-    path("role/delete/<int:role_id>/", DeleteTeamMemberRoleView.as_view(), name="delete-team-member-role"),
-
-    # PROJECT ROLE ASSIGNMENT ROUTES
-    path("role/add/", AddRoleToProjectView.as_view(), name="add-role-to-project"),
-    path("role/remove/", RemoveRoleFromProjectView.as_view(), name="remove-role-from-project"),
-    path("role/get/<int:project_id>/", RetrieveProjectRolesView.as_view(), name="retrieve-project-roles"),
-    
+  
     # PROJECT MEMBERSHIP ROUTES
     path("membership/request/compute/<int:project_id>/", ComputeMembershipMatchScoreView.as_view(), name="compute-membership-match-score"),
-    path("membership/request/<int:project_role_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
+    path("membership/request/<int:project_id>/", RequestProjectMembershipView.as_view(), name="request-project-membership"),
     path("membership/request/get/<int:project_id>/", RetrieveProjectMembershipRequestsView.as_view(), name="retrieve-project-membership-requests"),
     path("membership/request/accept/<int:project_request_id>/", AcceptProjectMembershipView.as_view(), name="accept-project-membership-request"),
     path("membership/request/reject/<int:project_request_id>/", RejectProjectMembershipView.as_view(), name="reject-project-membership-request"),
