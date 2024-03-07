@@ -58,6 +58,9 @@ class MarkNotificationAsReadOrUnreadView(APIView):
         except Notification.DoesNotExist:
             return Response({"error": "Notification not found!"}, status=status.HTTP_404_NOT_FOUND)
         
+        if notification.user != request.user:
+            return Response({"error": "You do not have permission for this resource!"}, status=status.HTTP_403_FORBIDDEN)
+        
         serializer = NotificationSerializer(notification, context={"request": request})
         if notification.is_read:
             notification.is_read = False
