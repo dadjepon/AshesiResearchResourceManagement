@@ -102,7 +102,7 @@ def get_ra_project_hours(ra):
     total_project_hours = 0
 
     for team in project_team:
-        assigned_tasks = ProjectTaskAssignment.objects.filter(project_task__project_milestone__project=team.project_role.project, assignee=ra.user)
+        assigned_tasks = ProjectTaskAssignment.objects.filter(project_task__project_milestone__project=team.project, assignee=ra.user)
         project_hours = 0
 
         for assigned_task in assigned_tasks:
